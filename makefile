@@ -7,10 +7,10 @@ CXX = g++
 CFLAGS  = -g -Wall
 LINKING = -lglut -lGL -lGLU
 TARGET = *
+EXE = out
 
 all:
-	$(CXX) $(CFLAGS) -o out $(TARGET).cpp $(LINKING)
-	./out
+	$(CXX) $(CFLAGS) -o $(EXE) $(TARGET).cpp $(LINKING)
 
 clean:
 	$(RM) $(TARGET)

@@ -2,6 +2,11 @@
 #include <iostream>
 
 namespace svg_tools {
+  
+  /// @brief Reads a .svg file and populates circles and rectangles vectors
+  /// @param file 
+  /// @param r 
+  /// @param c 
   void readSvg(char * file, std::vector<Rect> &r, std::vector<Circ> &c){
     tinyxml2::XMLDocument doc;
 	  doc.LoadFile(file);

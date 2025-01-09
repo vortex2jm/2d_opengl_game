@@ -5,6 +5,13 @@
 #include <vector>
 #include <string>
 
+// colors
+#define BLACK { 0.0, 0.0, 0.0 }
+#define RED { 1.0, 0.0, 0.0 }
+#define GREEN { 0.0, 1.0, 0.0 }
+#define BLUE { 0.0, 0.0, 1.0 }
+
+/// @brief Tools and features to manage .svg files
 namespace svg_tools {
   // Intermediate structures to read the svg
   struct Rect {

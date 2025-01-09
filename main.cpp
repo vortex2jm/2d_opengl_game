@@ -4,6 +4,7 @@
 #include <iostream>
 #include <GL/gl.h>
 #include "utils.h"
+#include "arena.h"
 #include <string>
 #include <vector>
 
@@ -11,11 +12,7 @@
 const GLint Width = 700;
 const GLint Height = 700;
 
-// Viewing dimensions
-const GLint ViewingWidth = 500;
-const GLint ViewingHeight = 500;
-
-// callbacks
+// callbacks=========
 void renderScene(void);
 void keyPress(unsigned char key, int x, int y);
 void keyup(unsigned char key, int x, int y);
@@ -23,34 +20,33 @@ void ResetKeyStatus();
 void init(void);
 void idle(void);
 
-//=============================//
-// Main                        //
-//=============================//
+
+//svg data===================================
+std::vector<svg_tools::Rect> rectangles = {};
+std::vector<svg_tools::Circ> circles = {};
+Arena ring;
+
+// MAIN========================
 int main(int argc, char *argv[])
 {
+  // File reading and initialization========================
   if(argc < 2){
     std::cerr << "Missing command line argument" << std::endl;
     exit(1);
   }
 
-  //svg buffer
-  std::vector<svg_tools::Rect> rectangles = {};
-  std::vector<svg_tools::Circ> circles = {};
-  svg_tools::readSvg(argv[1], rectangles, circles);
-
-  // NEXT STEP=================================
-  // -> Create Arena based on rects and circles
-  //===========================================
+  // vectors passed by referece====================
+  svg_tools::readSvg(argv[1], rectangles, circles);   
+  ring.setup(rectangles);
   
-  
-  // Setting up
+  // Setting up graphic lib===================
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 
   // Creating the window.
   glutInitWindowSize(Width, Height);
   glutInitWindowPosition(150,50);
-  glutCreateWindow("2D Game");
+  glutCreateWindow("2D Shot Game");
 
   // Defining callbacks.
   glutDisplayFunc(renderScene);
@@ -58,10 +54,41 @@ int main(int argc, char *argv[])
   glutIdleFunc(idle);
   glutKeyboardUpFunc(keyup);
 
+  // Setup
   init();
 
   glutMainLoop();
   return 0;
+}
+
+//=============
+void init(void)
+{
+  // Erasing frames and keys
+  ResetKeyStatus();
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black, no opacity(alpha).
+  
+  // Setting up projection
+  std::map<std::string, double> limits = ring.get_2dprojection_limits();
+
+  glMatrixMode(GL_PROJECTION);             
+  
+  // projection limits must to be proportional with the window aspect ratio
+  glOrtho(
+    limits["left"],     // left edge
+    limits["right"],    // right edge
+    limits["bottom"],   // bottom edge
+    limits["top"],      // top edge
+    -100,               // “near” plane
+    100                 // “far” plane
+  );               
+  
+  // Translates the world to left in front of camera (player movement)
+  // glTranslatef(-100, 0, 0);
+
+  // reset matrix stack
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
 }
 
 //=============================//
@@ -72,15 +99,18 @@ void renderScene(void)
   // Clear the screen.
   glClear(GL_COLOR_BUFFER_BIT);
   
-  glColor3f (1.0, 0, 0);  
+  ring.draw();
 
-   glBegin(GL_POLYGON);
-      glVertex3f (0, 0, 0);
-      glVertex3f (0, 0, 0);
-      glVertex3f (0, 0, 0);
-      glVertex3f (0, 0, 0);
-   glEnd();
-  
+  // debug
+  // glColor3f (1.0, 0, 0);  
+
+  //  glBegin(GL_POLYGON);
+  //     glVertex3f (0, 100, 0);
+  //     glVertex3f (0, 0, 0);
+  //     glVertex3f (100, 0, 0);
+  //     glVertex3f (100, 100, 0);
+  //  glEnd();
+
   // Draw the new frame of the game.
   glutSwapBuffers(); 
 }
@@ -95,24 +125,6 @@ void keyPress(unsigned char key, int x, int y)
 void keyup(unsigned char key, int x, int y)
 {
   glutPostRedisplay();
-}
-
-//=============
-void init(void)
-{
-  ResetKeyStatus();
-  // The color the windows will redraw. Its done to erase the previous frame.
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black, no opacity(alpha).
-  
-  glMatrixMode(GL_PROJECTION); // Select the projection matrix
-  glOrtho(-(ViewingWidth/2),     // X coordinate of left edge
-          (ViewingWidth/2),     // X coordinate of right edge
-          -(ViewingHeight/2),     // Y coordinate of bottom edge
-          (ViewingHeight/2),     // Y coordinate of top edge
-          -100,     // Z coordinate of the “near” plane
-          100);    // Z coordinate of the “far” plane
-  glMatrixMode(GL_MODELVIEW); // Select the projection matrix
-  glLoadIdentity();
 }
 
 //=============

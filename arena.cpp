@@ -17,7 +17,7 @@ void Arena::setup(const std::vector<svg_tools::Rect> &rectangles) {
 }
 
 
-/// @brief Draw a rectangle with param data
+/// @brief Draws a rectangle growing downward and rightward
 /// @param x 
 /// @param y 
 /// @param width 
@@ -33,16 +33,18 @@ void Arena::draw_rect(
   const std::array<double, 3> color) const
 {
   glColor3d(color[0], color[1], color[2]);
+
+  // Anticlokwise
   glBegin(GL_POLYGON);
-    glVertex3f(x+width, y+height, z_index); // top right corner
-    glVertex3f(x, y+height, z_index);       // top left corner
-    glVertex3f(x, y, z_index);              // bottom left corner
-    glVertex3f( x+width, y, z_index);       // bottom right corner
+    glVertex3f(x, y, z_index);              // top left corner
+    glVertex3f(x, y+height, z_index);       // bottom left corner
+    glVertex3f(x+width, y+height, z_index); // bottom right corner
+    glVertex3f( x+width, y, z_index);       // top right corner
   glEnd();        
 }
 
 
-/// @brief Draws the arena including obstacles
+/// @brief Draws a fixed arena including obstacles
 void Arena::draw() const
 {
   double z_index = 0;
@@ -55,7 +57,7 @@ void Arena::draw() const
 }
 
 
-/// @brief Function to get GLOrtho X and Y limits based on arena
+/// @brief Function to get GLOrtho X and Y limits based on the arena
 /// @return a map of edge limits (left, right, top and bottom)
 std::map<std::string, double> Arena::get_2dprojection_limits() const
 {

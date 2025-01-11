@@ -10,6 +10,7 @@
 #define RED { 1.0, 0.0, 0.0 }
 #define GREEN { 0.0, 1.0, 0.0 }
 #define BLUE { 0.0, 0.0, 1.0 }
+#define YELLOW { 1.0, 1.0, 0 }
 
 /// @brief Tools and features to manage .svg files
 namespace svg_tools {

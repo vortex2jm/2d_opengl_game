@@ -37,10 +37,10 @@ class Player {
   void draw_circle(double radius, double z_index, std::array<double, 3> color) const;
   void draw_rect_by_center(double width, double height, double z_index, std::array<double, 3> color) const;
   void draw_rect_by_base(double width, double height, double z_index, std::array<double, 3> color) const;
-  void draw_trunk(std::array<double, 3> color) const;
+  void draw_trunk(double z_index, std::array<double, 3> color) const;
   void draw_head(double x, double y, double z_index, std::array<double, 3> color) const;
-  void draw_arms(double x, double y, double theta, double z_index, std::array<double, 3> color) const;
-  void draw_legs() const;
+  void draw_arm(double x, double y, double theta, double z_index, std::array<double, 3> color) const;
+  void draw_leg(double x, double y, double theta1, double theta2, double z_index, std::array<double, 3> color) const;
   void draw_body() const;
 
   public:

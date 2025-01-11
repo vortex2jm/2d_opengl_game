@@ -8,10 +8,10 @@ void Player::setup(const svg_tools::Circ &circle)
   Player::height = circle.r * 2;
 
   Player::legs_height = circle.r * 2 * LEGS_PROP;
-  Player::legs_width = legs_height * WIDTH_PROP_FACTOR;
+  Player::legs_width = legs_height * 0.1;
   
   Player::trunk_height = circle.r * 2 * TRUNK_PROP;
-  Player::trunk_width = trunk_height * WIDTH_PROP_FACTOR;
+  Player::trunk_width = trunk_height * 0.5;
 
   Player::arms_height = circle.r * 2 * ARMS_PROP;
   Player::arms_width = arms_height * WIDTH_PROP_FACTOR;
@@ -23,7 +23,7 @@ void Player::setup(const svg_tools::Circ &circle)
 void Player::draw_circle(double radius, double z_index, const std::array<double, 3> color) const
 {
   glColor3d(color[0], color[1], color[2]);
-  glBegin(GL_POINTS);
+  glBegin(GL_POLYGON);
     for(int i=0; i<360; i+=20){
       double rad = i * M_PI / 180.0;
       double x = radius * cos(rad);
@@ -60,7 +60,7 @@ void Player::draw_rect_by_base(double width, double height, double z_index, std:
 }
 
 
-void Player::draw_trunk(std::array<double, 3> color) const
+void Player::draw_trunk(double z_index, std::array<double, 3> color) const
 { 
   // Redundancy (helps legibility)
   // The trunk is the centroid of the player
@@ -73,22 +73,48 @@ void Player::draw_head(double x, double y, double z_index, std::array<double, 3>
 {
   glPushMatrix();
     glTranslated(x, y, 0);
-    Player::draw_circle(Player::head_diameter/2; PLAYER_Z_INDEX, color);
+    Player::draw_circle(Player::head_diameter/2, z_index, color);
   glPopMatrix();
 }
 
 
-void Player::draw_arms(double x, double y, double theta, double z_index, std::array<double, 3> color) const
+void Player::draw_arm(double x, double y, double theta, double z_index, std::array<double, 3> color) const
 {
   glPushMatrix();
     glTranslated(x, y, 0);
     glRotated(theta, 0, 0 , 1);
-    Player::draw_rect_by_base(Player::arms_width, Player::arms_height, PLAYER_Z_INDEX, color);
+    Player::draw_rect_by_base(Player::arms_width, Player::arms_height, z_index, color);
   glPopMatrix();
 }
 
+void Player::draw_leg(double x, double y, double theta1, double theta2, double z_index, std::array<double, 3> color) const
+{
+  glPushMatrix();
+    glTranslated(x, y, 0);
+    glRotated(theta1, 0, 0, 1);   // Hip joint
+    Player::draw_rect_by_base(Player::legs_width, Player::legs_height/2, z_index, color);
+    glTranslated(0, Player::legs_height/2, 0);
+    glRotated(theta2, 0, 0, 1);   //Knee joint
+    Player::draw_rect_by_base(Player::legs_width, Player::legs_height/2, z_index, color);
+  glPopMatrix();
+}
 
 void Player::draw() const
 {
-  
+  glPushMatrix();
+    glTranslated(Player::cx, Player::cy, 0);
+    Player::draw_trunk(PLAYER_Z_INDEX ,GREEN);
+    Player::draw_head(
+      0, -((Player::trunk_height/2) + (Player::head_diameter/2)), PLAYER_Z_INDEX, GREEN
+    );
+    Player::draw_arm(0, 0, -90, PLAYER_Z_INDEX, YELLOW);
+    Player::draw_leg(0, Player::trunk_height/2, -15, 0, PLAYER_Z_INDEX, RED);   // Front leg
+    Player::draw_leg(0, Player::trunk_height/2, 10, 30, PLAYER_Z_INDEX, RED);   // Back leg
+  glPopMatrix();
+
+  //debug
+  // glPushMatrix();
+  //   glTranslated(Player::cx, Player::cy, 0);
+  //   Player::draw_circle(Player::height/2, PLAYER_Z_INDEX, RED);
+  // glPopMatrix();
 }

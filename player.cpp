@@ -14,7 +14,7 @@ void Player::setup(const svg_tools::Circ &circle)
   Player::trunk_width = trunk_height * 0.5;
 
   Player::arms_height = circle.r * 2 * ARMS_PROP;
-  Player::arms_width = arms_height * WIDTH_PROP_FACTOR;
+  Player::arms_width = arms_height * 0.3;
 
   Player::head_diameter = circle.r * 2 * HEAD_PROP;
 }
@@ -108,13 +108,66 @@ void Player::draw() const
       0, -((Player::trunk_height/2) + (Player::head_diameter/2)), PLAYER_Z_INDEX, GREEN
     );
     Player::draw_arm(0, 0, -90, PLAYER_Z_INDEX, YELLOW);
-    Player::draw_leg(0, Player::trunk_height/2, -15, 0, PLAYER_Z_INDEX, RED);   // Front leg
-    Player::draw_leg(0, Player::trunk_height/2, 10, 30, PLAYER_Z_INDEX, RED);   // Back leg
+    Player::draw_leg(
+      0, 
+      Player::trunk_height/2, 
+      Player::hip_joint_angle1,
+      Player::knee_joint_angle1,
+      PLAYER_Z_INDEX, 
+      RED
+    );   // Front leg
+    Player::draw_leg(
+      0, 
+      Player::trunk_height/2, 
+      Player::hip_joint_angle2, 
+      Player::knee_joint_angle_2, 
+      PLAYER_Z_INDEX, 
+      RED
+    );   // Back leg
   glPopMatrix();
-
-  //debug
-  // glPushMatrix();
-  //   glTranslated(Player::cx, Player::cy, 0);
-  //   Player::draw_circle(Player::height/2, PLAYER_Z_INDEX, RED);
-  // glPopMatrix();
 }
+
+void Player::horizontal_move(double x)
+{
+  // Legs motion must be described by a periodic function
+  // lower legs ->  y = 15 * (sin(kx) + 1)
+  // upper legs  ->  y = 15 * sin(kx)
+  // While one lag is moving frontward, the other is moving backward
+  // The frequency has been set to simulates a natural movement
+  
+  // Translating player
+  Player::cx += x;
+  
+  // The legs have opposite phases
+  Player::x_variation_leg1 += x;
+  Player::x_variation_leg2 -= x;
+  
+  // Movement frequency adjustment
+  double k = 0.5;
+
+  //Calculating periodic functions based on each leg parameter================
+  // Leg 1
+  double upper_legs_motion_angle1 = 15 * sin(k*Player::x_variation_leg1);
+  double lower_legs_motion_angle1 = 25 * (sin(k*Player::x_variation_leg1) + 1);
+  // Leg 2
+  double upper_legs_motion_angle2 = 15 * sin(k*Player::x_variation_leg2);
+  double lower_legs_motion_angle2 = 25 * (sin(k*Player::x_variation_leg2) + 1);
+  
+  // Updating joints angles======================= 
+  // Leg 1
+  Player::hip_joint_angle1 = upper_legs_motion_angle1;
+  Player::knee_joint_angle1 = lower_legs_motion_angle1;
+  //Leg 2
+  Player::hip_joint_angle2 = upper_legs_motion_angle2;
+  Player::knee_joint_angle_2 = lower_legs_motion_angle2;
+}
+
+
+void Player::reset_legs_position()
+{
+  Player::hip_joint_angle1 = 0;
+  Player::knee_joint_angle1 = 0;
+  Player::hip_joint_angle2 = 0;
+  Player::knee_joint_angle_2 =0;
+}
+

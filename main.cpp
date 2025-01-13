@@ -15,12 +15,14 @@
 const GLint Width = 700;
 const GLint Height = 700;
 
+int key_status[256] = {0};
+
 // Callback declarations
 void init(void);
 void idle(void);
-void ResetKeyStatus();
+void resetKeyStatus();
 void renderScene(void);
-void keyup(unsigned char key, int x, int y);
+void keyUp(unsigned char key, int x, int y);
 void keyPress(unsigned char key, int x, int y);
 
 //svg data===================================
@@ -52,6 +54,7 @@ int main(int argc, char *argv[])
   for(const svg_tools::Circ &c: circles){
     if(c.color == "green"){
       self.setup(c);
+      continue;
     }
     Player p;
     p.setup(c);
@@ -71,7 +74,7 @@ int main(int argc, char *argv[])
   glutDisplayFunc(renderScene);
   glutKeyboardFunc(keyPress);
   glutIdleFunc(idle);
-  glutKeyboardUpFunc(keyup);
+  glutKeyboardUpFunc(keyUp);
 
   // Setup
   init();
@@ -84,7 +87,7 @@ int main(int argc, char *argv[])
 void init(void)
 {
   // Erasing frames and keys
-  ResetKeyStatus();
+  resetKeyStatus();
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black, no opacity(alpha).
   
   // Setting up projection
@@ -109,6 +112,7 @@ void init(void)
   glLoadIdentity();
 }
 
+
 //=============================//
 // Callbacks implementations   //
 //=============================//
@@ -128,14 +132,78 @@ void renderScene(void)
   glutSwapBuffers(); 
 }
 
-//============================================
-void keyPress(unsigned char key, int x, int y){}
 
 //========================================
-void keyup(unsigned char key, int x, int y){}
+void keyUp(unsigned char key, int x, int y){
+  key_status[key] = 0;
+  
+  // reseting legs to initial position
+  if(key == 'a' or key == 'd') {
+    self.reset_legs_position();
+  }
 
-//=============
-void idle(void){}
+  glutPostRedisplay();
+}
+
 
 //==================
-void ResetKeyStatus(){}
+void resetKeyStatus(){
+  for(int x=0; x<256; x++){
+    key_status[x] = 0;
+  }
+  glutPostRedisplay();  
+}
+
+
+//============================================
+void keyPress(unsigned char key, int x, int y){
+  switch (key)
+  {
+  case 'a':
+  case 'A':
+    key_status['a'] = 1;
+    break;
+
+  case 'd':
+  case 'D':
+    key_status['d'] = 1;
+    break;
+
+  case 0x1b:  // ESC
+    exit(0);
+
+  default:
+    break;
+  }
+
+  glutPostRedisplay();
+}
+
+
+//=============
+void idle(void){
+  // Setting frame rate
+  static double previousTime = glutGet(GLUT_ELAPSED_TIME);
+  double currentTime, timeDiference;
+  currentTime = glutGet(GLUT_ELAPSED_TIME);
+  timeDiference = currentTime - previousTime;
+  previousTime = currentTime;
+
+  // Horizontal left motion
+  if(key_status['a']) {
+    self.horizontal_move(-0.5);
+    glMatrixMode(GL_PROJECTION);             
+      glTranslated(0.5, 0, 0);
+    glMatrixMode(GL_MODELVIEW);
+  }
+
+  // Horizontal right motion
+  if(key_status['d']) {
+    self.horizontal_move(0.5);
+    glMatrixMode(GL_PROJECTION);             
+      glTranslated(-0.5, 0, 0);
+    glMatrixMode(GL_MODELVIEW);
+  }
+
+  glutPostRedisplay();
+}

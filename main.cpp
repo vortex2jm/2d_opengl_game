@@ -184,24 +184,26 @@ void keyPress(unsigned char key, int x, int y){
 void idle(void){
   // Setting frame rate
   static double previousTime = glutGet(GLUT_ELAPSED_TIME);
-  double currentTime, timeDiference;
+  double currentTime, timeDifference;
   currentTime = glutGet(GLUT_ELAPSED_TIME);
-  timeDiference = currentTime - previousTime;
+  timeDifference = currentTime - previousTime;
   previousTime = currentTime;
+
 
   // Horizontal left motion
   if(key_status['a']) {
-    self.horizontal_move(-0.5);
+    self.horizontal_move(-timeDifference);
     glMatrixMode(GL_PROJECTION);             
-      glTranslated(0.5, 0, 0);
+      glTranslated((timeDifference* 0.05), 0, 0);
     glMatrixMode(GL_MODELVIEW);
   }
 
+
   // Horizontal right motion
   if(key_status['d']) {
-    self.horizontal_move(0.5);
+    self.horizontal_move(timeDifference);
     glMatrixMode(GL_PROJECTION);             
-      glTranslated(-0.5, 0, 0);
+      glTranslated(-(timeDifference*0.05), 0, 0);
     glMatrixMode(GL_MODELVIEW);
   }
 

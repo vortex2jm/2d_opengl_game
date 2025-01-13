@@ -7,13 +7,18 @@
 
 #include "utils.h"
 
+
 // Size propotions
 #define HEAD_PROP   0.15
 #define ARMS_PROP   0.30
 #define TRUNK_PROP  0.40
 #define LEGS_PROP   0.45
 
-#define PLAYER_Z_INDEX 1
+// Z-coord
+#define PLAYER_Z_INDEX 1.0
+
+// Legs movements adjustment
+#define LEGS_FREQUENCY 0.5
 
 
 class Player {
@@ -21,6 +26,7 @@ class Player {
   double cx = 0;  // centroid
   double cy = 0;
   double height;
+  double velocity = 0.05;
 
   //=====================
   double legs_width = 0;

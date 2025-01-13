@@ -127,7 +127,8 @@ void Player::draw() const
   glPopMatrix();
 }
 
-void Player::horizontal_move(double x)
+
+void Player::horizontal_move(double time_diff)
 {
   // Legs motion must be described by a periodic function
   // lower legs ->  y = 15 * (sin(kx) + 1)
@@ -136,14 +137,14 @@ void Player::horizontal_move(double x)
   // The frequency has been set to simulates a natural movement
   
   // Translating player
-  Player::cx += x;
+  Player::cx += time_diff * Player::velocity;
   
   // The legs have opposite phases
-  Player::x_variation_leg1 += x;
-  Player::x_variation_leg2 -= x;
+  Player::x_variation_leg1 += time_diff * Player::velocity; 
+  Player::x_variation_leg2 -= time_diff * Player::velocity;
   
   // Movement frequency adjustment
-  double k = 0.5;
+  double k = LEGS_FREQUENCY;
 
   //Calculating periodic functions based on each leg parameter================
   // Leg 1
@@ -170,4 +171,3 @@ void Player::reset_legs_position()
   Player::hip_joint_angle2 = 0;
   Player::knee_joint_angle_2 =0;
 }
-

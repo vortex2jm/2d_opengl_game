@@ -12,6 +12,16 @@
 #define BLUE { 0.0, 0.0, 1.0 }
 #define YELLOW { 1.0, 1.0, 0 }
 
+enum JumpState {
+  NotJumping,
+  Jumping
+};
+
+enum JumpPhase {
+  Up,
+  Down
+};
+
 /// @brief Tools and features to manage .svg files
 namespace svg_tools {
   // Intermediate structures to read the svg

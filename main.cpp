@@ -11,11 +11,19 @@
 #include "utils.h"
 #include "arena.h"
 
+#define MOUSE_RIGHT 255
+
 // Window dimensions
 const GLint Width = 700;
 const GLint Height = 700;
 
+// keyboard
 int key_status[256] = {0};
+
+// Jump controls
+JumpState jump_state = JumpState::NotJumping;
+JumpPhase jump_phase = JumpPhase::Up;
+
 
 // Callback declarations
 void init(void);
@@ -24,6 +32,7 @@ void resetKeyStatus();
 void renderScene(void);
 void keyUp(unsigned char key, int x, int y);
 void keyPress(unsigned char key, int x, int y);
+void mouseClick(int button, int state, int x, int y);
 
 //svg data===================================
 std::vector<svg_tools::Rect> rectangles = {};
@@ -71,10 +80,11 @@ int main(int argc, char *argv[])
   glutCreateWindow("2D Shot Game");
 
   // Defining callbacks.
-  glutDisplayFunc(renderScene);
-  glutKeyboardFunc(keyPress);
   glutIdleFunc(idle);
   glutKeyboardUpFunc(keyUp);
+  glutMouseFunc(mouseClick);
+  glutKeyboardFunc(keyPress);
+  glutDisplayFunc(renderScene);
 
   // Setup
   init();
@@ -207,5 +217,38 @@ void idle(void){
     glMatrixMode(GL_MODELVIEW);
   }
 
+  std::cout << timeDifference << std::endl;
+
+  // Jump
+  // if(jump_state == JumpState::Jumping){
+  //   // 
+  //   if(key_status[MOUSE_RIGHT]) {
+
+  //   }
+  // }
+
+  // Criar um atributo para armazenar a posição Y do player
+  // Transladar para cima enquanto o botao tiver pressionado e o tempo nao tiver excedido
+  // Seguir a formula fisica para fazer a distancia da translação variar de acordo com a gravidade 
+  // Se o botão parar de ser pressionado ou exceder o tempo maximo de pulo, 
+  // Transladar o boneco para baixo até que ele volte para a posição Y inicial,
+  // Seguindo a formula fisica para aumentar a distancia da translação gradativamente
+  // OBS: talvez a formula fisica nao funcione. Transladar com velocidade constante
+
   glutPostRedisplay();
+}
+
+//===================================================
+void mouseClick(int button, int state, int x, int y) {
+  if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+    if(jump_state == JumpState::NotJumping){
+      jump_state = JumpState::Jumping;
+      key_status[MOUSE_RIGHT] = 1;
+      //self.jump(); // Supondo que você tenha um método `jump` para o jogador
+    }
+    return;
+  }
+  if(button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
+    key_status[MOUSE_RIGHT] = 0;
+  }
 }

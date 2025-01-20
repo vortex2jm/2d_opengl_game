@@ -22,8 +22,6 @@ int key_status[256] = {0};
 
 // Jump controls
 JumpState jump_state = JumpState::NotJumping;
-JumpPhase jump_phase = JumpPhase::Up;
-
 
 // Callback declarations
 void init(void);
@@ -202,7 +200,7 @@ void idle(void){
 
   // Horizontal left motion
   if(key_status['a']) {
-    self.horizontal_move(-timeDifference);
+    self.walk(-timeDifference);
     glMatrixMode(GL_PROJECTION);             
       glTranslated((timeDifference* 0.05), 0, 0);
     glMatrixMode(GL_MODELVIEW);
@@ -211,21 +209,23 @@ void idle(void){
 
   // Horizontal right motion
   if(key_status['d']) {
-    self.horizontal_move(timeDifference);
+    self.walk(timeDifference);
     glMatrixMode(GL_PROJECTION);             
       glTranslated(-(timeDifference*0.05), 0, 0);
     glMatrixMode(GL_MODELVIEW);
   }
 
-  std::cout << timeDifference << std::endl;
+  // debug
+  // std::cout << timeDifference << std::endl;
 
   // Jump
-  // if(jump_state == JumpState::Jumping){
-  //   // 
-  //   if(key_status[MOUSE_RIGHT]) {
+  if(jump_state == JumpState::Jumping){
+    if(!self.jump(timeDifference, key_status[MOUSE_RIGHT])){
+      jump_state = JumpState::NotJumping;
+    }
+    self.reset_legs_position();
+  }
 
-  //   }
-  // }
 
   // Criar um atributo para armazenar a posição Y do player
   // Transladar para cima enquanto o botao tiver pressionado e o tempo nao tiver excedido
@@ -238,9 +238,12 @@ void idle(void){
   glutPostRedisplay();
 }
 
+
 //===================================================
 void mouseClick(int button, int state, int x, int y) {
   if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+
+    // The jump key can be activated only when the player is not jumping
     if(jump_state == JumpState::NotJumping){
       jump_state = JumpState::Jumping;
       key_status[MOUSE_RIGHT] = 1;

@@ -7,6 +7,9 @@ void Player::setup(const svg_tools::Circ &circle)
   Player::cy = circle.cy;
   Player::height = circle.r * 2;
 
+  Player::initial_cx = cx;
+  Player::initial_cy = cy;
+
   Player::legs_height = circle.r * 2 * LEGS_PROP;
   Player::legs_width = legs_height * 0.1;
   
@@ -128,7 +131,7 @@ void Player::draw() const
 }
 
 
-void Player::horizontal_move(double time_diff)
+void Player::walk(double time_diff)
 {
   // Legs motion must be described by a periodic function
   // lower legs ->  y = 15 * (sin(kx) + 1)
@@ -170,4 +173,36 @@ void Player::reset_legs_position()
   Player::knee_joint_angle1 = 0;
   Player::hip_joint_angle2 = 0;
   Player::knee_joint_angle_2 =0;
+}
+
+
+int Player::jump(double time_diff, int button_state)
+{
+  // Changing jump direction (2s)
+  if(jump_time >= 2000) {
+    Player::jump_phase = JumpPhase::Down;
+  }
+
+  // Rising
+  if(button_state == 1 and Player::jump_phase == JumpPhase::Up) {
+    Player::cy -= time_diff * Player::velocity/2;
+  }
+
+  // Descending
+  if(button_state == 0 or jump_phase == JumpPhase::Down) {
+    if(Player::cy < Player::initial_cy) {
+      Player::cy += time_diff * Player::velocity/2;
+    }
+
+    // Jump finished. PLayer in the initial position
+    else {
+      Player::jump_phase = JumpPhase::Up;
+      Player::jump_time = 0.0;
+      return 0;
+    }
+  }
+
+  // Updating jump time
+  Player::jump_time += time_diff;
+  return 1;
 }

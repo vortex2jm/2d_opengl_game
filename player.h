@@ -28,6 +28,10 @@ class Player {
   double height;
   double velocity = 0.05;
 
+  // Updated position
+  double initial_cx = 0;
+  double initial_cy = 0;
+
   //=====================
   double legs_width = 0;
   double legs_height = 0;
@@ -49,6 +53,11 @@ class Player {
 
   double head_diameter = 0;  
 
+  //===================
+  JumpPhase jump_phase = JumpPhase::Up;
+  double jump_time = 0.0;
+
+  // Methods======
   void draw_circle(double radius, double z_index, std::array<double, 3> color) const;
   void draw_rect_by_center(double width, double height, double z_index, std::array<double, 3> color) const;
   void draw_rect_by_base(double width, double height, double z_index, std::array<double, 3> color) const;
@@ -61,8 +70,9 @@ class Player {
     Player(){}
     void setup(const svg_tools::Circ &circle);
     void draw() const;
-    void horizontal_move(double x);
+    void walk(double time_diff);
     void reset_legs_position();
+    int jump(double time_diff, int button_state);
 };  
 
 #endif

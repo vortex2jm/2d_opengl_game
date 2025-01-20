@@ -179,19 +179,28 @@ void Player::reset_legs_position()
 int Player::jump(double time_diff, int button_state)
 {
   // Changing jump direction (2s)
-  if(jump_time >= 2000) {
-    Player::jump_phase = JumpPhase::Down;
-  }
+  // if(jump_time >= 2000) {
+  //   Player::jump_phase = JumpPhase::Down;
+  // }
+
+  // Calculating rising and fall velocity velocity
+  // v = v0 + at
+  double acc = 9.8;
+  double correction_factor = 200000;  
+  double rise_velocity = (Player::velocity + (-acc * jump_time / correction_factor));
+  double fall_velocity = (0 + (acc * jump_time /correction_factor));
 
   // Rising
   if(button_state == 1 and Player::jump_phase == JumpPhase::Up) {
-    Player::cy -= time_diff * Player::velocity/2;
+    if(rise_velocity > 0){
+      Player::cy -= time_diff * rise_velocity;
+    }
   }
 
   // Descending
-  if(button_state == 0 or jump_phase == JumpPhase::Down) {
+  if(button_state == 0 or jump_phase == JumpPhase::Down or rise_velocity <= 0) {
     if(Player::cy < Player::initial_cy) {
-      Player::cy += time_diff * Player::velocity/2;
+      Player::cy += time_diff * fall_velocity;
     }
 
     // Jump finished. PLayer in the initial position

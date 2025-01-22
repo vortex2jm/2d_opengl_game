@@ -65,12 +65,15 @@ class Player {
   void draw_head(double x, double y, double z_index, std::array<double, 3> color) const;
   void draw_arm(double x, double y, double theta, double z_index, std::array<double, 3> color) const;
   void draw_leg(double x, double y, double theta1, double theta2, double z_index, std::array<double, 3> color) const;
+  
+  // TODO
+  void check_colision(double cx, std::vector<svg_tools::Rect> rectangles, std::string direction) const;
 
   public:
     Player(){}
     void setup(const svg_tools::Circ &circle);
     void draw() const;
-    void walk(double time_diff);
+    void walk(double time_diff);  // to refactor
     void reset_legs_position();
     int jump(double time_diff, int button_state);
 };  

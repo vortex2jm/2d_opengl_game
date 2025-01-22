@@ -131,7 +131,8 @@ void Player::draw() const
 }
 
 
-void Player::walk(double time_diff)
+// to refactor
+void Player::walk(double time_diff) 
 {
   // Legs motion must be described by a periodic function
   // lower legs ->  y = 15 * (sin(kx) + 1)

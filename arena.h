@@ -32,6 +32,10 @@ class Arena {
     void setup(const std::vector<svg_tools::Rect> &rectangles);
     void draw() const;
     std::map<std::string, double> get_2dprojection_limits() const;
+    double get_x();
+    double get_y();
+    double get_width();
+    double get_high();
 };
 
 #endif

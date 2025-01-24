@@ -28,11 +28,11 @@ class Player {
   double height;
   double velocity = 0.05;
 
-  // Updated position
+  // Initial position
   double initial_cx = 0;
   double initial_cy = 0;
 
-  //=====================
+  //legs=====================
   double legs_width = 0;
   double legs_height = 0;
   
@@ -44,16 +44,18 @@ class Player {
   double x_variation_leg1 = 0;
   double x_variation_leg2 = 0;
 
-  //===================
+  //arms===================
   double arms_width = 0;
   double arms_height = 0;
 
+  //trunk===============
   double trunk_width = 0;
   double trunk_height = 0;
 
+  //head==================
   double head_diameter = 0;  
 
-  //===================
+  //jump control===================
   JumpPhase jump_phase = JumpPhase::Up;
   double jump_time = 0.0;
 
@@ -66,16 +68,20 @@ class Player {
   void draw_arm(double x, double y, double theta, double z_index, std::array<double, 3> color) const;
   void draw_leg(double x, double y, double theta1, double theta2, double z_index, std::array<double, 3> color) const;
   
-  // TODO
-  void check_colision(double cx, std::vector<svg_tools::Rect> rectangles, std::string direction) const;
+  // TODO (maybe) colision control is outside
+  // void check_colision(double cx, std::vector<svg_tools::Rect> rectangles, std::string direction) const;
 
   public:
     Player(){}
     void setup(const svg_tools::Circ &circle);
     void draw() const;
-    void walk(double time_diff);  // to refactor
+    void walk(double time_diff);
     void reset_legs_position();
     int jump(double time_diff, int button_state);
+    double get_cx();
+    double get_cy();
+    double get_width();
+    double get_height();
 };  
 
 #endif

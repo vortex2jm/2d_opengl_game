@@ -10,15 +10,19 @@ void Player::setup(const svg_tools::Circ &circle)
   Player::initial_cx = cx;
   Player::initial_cy = cy;
 
+  //legs========
   Player::legs_height = circle.r * 2 * LEGS_PROP;
   Player::legs_width = legs_height * 0.1;
   
+  //trunk=======
   Player::trunk_height = circle.r * 2 * TRUNK_PROP;
   Player::trunk_width = trunk_height * 0.5;
 
+  //arms========
   Player::arms_height = circle.r * 2 * ARMS_PROP;
   Player::arms_width = arms_height * 0.3;
 
+  // head=======
   Player::head_diameter = circle.r * 2 * HEAD_PROP;
 }
 
@@ -179,12 +183,7 @@ void Player::reset_legs_position()
 
 int Player::jump(double time_diff, int button_state)
 {
-  // Changing jump direction (2s)
-  // if(jump_time >= 2000) {
-  //   Player::jump_phase = JumpPhase::Down;
-  // }
-
-  // Calculating rising and fall velocity velocity
+  // Calculating rise and fall velocity velocity
   // v = v0 + at
   double acc = 9.8;
   double correction_factor = 200000;  
@@ -215,4 +214,25 @@ int Player::jump(double time_diff, int button_state)
   // Updating jump time
   Player::jump_time += time_diff;
   return 1;
+}
+
+// Getters
+double Player::get_cx()
+{
+  return Player::cx;
+}
+
+double Player::get_cy()
+{
+  return Player::cy;
+}
+
+double Player::get_width()
+{
+  return Player::trunk_width;
+}
+
+double Player::get_height()
+{
+  return Player::height;
 }

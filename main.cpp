@@ -23,6 +23,12 @@ int key_status[256] = {0};
 // Jump controls
 JumpState jump_state = JumpState::NotJumping;
 
+// colision control
+bool player_right_colision = false;
+bool player_left_colision = false;
+bool is_player_coliding = false;
+
+
 // Callback declarations
 void init(void);
 void idle(void);
@@ -197,43 +203,73 @@ void idle(void){
   timeDifference = currentTime - previousTime;
   previousTime = currentTime;
 
+  
+  // The horizontal colision check will happen here, not into player class
+  // the player class will provider getters
+
 
   // Horizontal left motion
   if(key_status['a']) {
-    self.walk(-timeDifference);
-    glMatrixMode(GL_PROJECTION);             
-      glTranslated((timeDifference* 0.05), 0, 0);
-    glMatrixMode(GL_MODELVIEW);
-  }
+    
+    // Checking colision against arena's left wall
+    if((self.get_cx() - (self.get_width()/2)) >= ring.get_x()){
+      
+      // TODO
+      // for(const svg_tools::Rect& r: rectangles) {
+      //   if( 
+      //     (self.get_cx() - (self.get_width()/2) <= (r.x + r.width)) &&  
+      //     (self.get_cx() - (self.get_width()/2) >= (r.x))
+      //   ){
+      //     player_left_colision = true;
+      //     break;
+      //   }
+      //   player_left_colision = false;
+      // }
 
+      if(!player_left_colision) {
+        self.walk(-timeDifference);
+        glMatrixMode(GL_PROJECTION);             
+          glTranslated((timeDifference* 0.05), 0, 0);
+        glMatrixMode(GL_MODELVIEW);
+      }
+    }
+  }
 
   // Horizontal right motion
   if(key_status['d']) {
-    self.walk(timeDifference);
-    glMatrixMode(GL_PROJECTION);             
-      glTranslated(-(timeDifference*0.05), 0, 0);
-    glMatrixMode(GL_MODELVIEW);
+
+    // Checking colision against arena's left wall
+    if((self.get_cx() + (self.get_width()/2)) <= (ring.get_x() + ring.get_width())){
+      
+      // TODO
+      // for(const svg_tools::Rect& r: rectangles) {
+      //   if( 
+      //     (self.get_cx() + (self.get_width()/2) >= (r.x)) &&  
+      //     (self.get_cx() + (self.get_width()/2) <= (r.x + r.width))
+      //   ){
+      //     player_right_colision = true;
+      //     break;
+      //   }
+      //   player_right_colision = false;
+      // }
+
+      if(!player_right_colision) {
+        self.walk(timeDifference);
+        glMatrixMode(GL_PROJECTION);             
+          glTranslated(-(timeDifference*0.05), 0, 0);
+        glMatrixMode(GL_MODELVIEW);
+      }
+    }
   }
 
-  // debug
-  // std::cout << timeDifference << std::endl;
 
   // Jump
   if(jump_state == JumpState::Jumping){
     if(!self.jump(timeDifference, key_status[MOUSE_RIGHT])){
       jump_state = JumpState::NotJumping;
     }
-    self.reset_legs_position();
+    self.reset_legs_position(); // Legs dont move when player is jumping
   }
-
-
-  // Criar um atributo para armazenar a posição Y do player
-  // Transladar para cima enquanto o botao tiver pressionado e o tempo nao tiver excedido
-  // Seguir a formula fisica para fazer a distancia da translação variar de acordo com a gravidade 
-  // Se o botão parar de ser pressionado ou exceder o tempo maximo de pulo, 
-  // Transladar o boneco para baixo até que ele volte para a posição Y inicial,
-  // Seguindo a formula fisica para aumentar a distancia da translação gradativamente
-  // OBS: talvez a formula fisica nao funcione. Transladar com velocidade constante
 
   glutPostRedisplay();
 }
@@ -251,6 +287,7 @@ void mouseClick(int button, int state, int x, int y) {
     }
     return;
   }
+
   if(button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
     key_status[MOUSE_RIGHT] = 0;
   }

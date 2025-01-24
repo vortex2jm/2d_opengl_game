@@ -69,3 +69,24 @@ std::map<std::string, double> Arena::get_2dprojection_limits() const
 
   return limits;  // Returns by copy
 }
+
+// Getters
+double Arena::get_x()
+{
+  return Arena::x;
+}
+
+double Arena::get_y()
+{
+  return Arena::y;
+}
+
+double Arena::get_width()
+{
+  return Arena::width;
+}
+
+double Arena::get_high()
+{
+  return Arena::height;
+}

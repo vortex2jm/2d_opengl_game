@@ -22,6 +22,12 @@ enum JumpPhase {
   Down
 };
 
+enum HorizontalMoveDirection {
+  Left,
+  Right
+};
+
+
 /// @brief Tools and features to manage .svg files
 namespace svg_tools {
   // Intermediate structures to read the svg

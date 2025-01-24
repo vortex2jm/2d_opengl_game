@@ -215,16 +215,16 @@ void idle(void){
     if((self.get_cx() - (self.get_width()/2)) >= ring.get_x()){
       
       // TODO
-      // for(const svg_tools::Rect& r: rectangles) {
-      //   if( 
-      //     (self.get_cx() - (self.get_width()/2) <= (r.x + r.width)) &&  
-      //     (self.get_cx() - (self.get_width()/2) >= (r.x))
-      //   ){
-      //     player_left_colision = true;
-      //     break;
-      //   }
-      //   player_left_colision = false;
-      // }
+      for(const svg_tools::Rect& r: ring.get_obstacles()) {
+        if( 
+          (self.get_cx() - (self.get_width()/2) <= (r.x + r.width)) &&  
+          (self.get_cx() - (self.get_width()/2) >= (r.x))
+        ){
+          player_left_colision = true;
+          break;
+        }
+        player_left_colision = false;
+      }
 
       if(!player_left_colision) {
         self.walk(-timeDifference);
@@ -237,21 +237,64 @@ void idle(void){
 
   // Horizontal right motion
   if(key_status['d']) {
+    
+    // TODO 
+    // Create a colision function using HorizontalMoveDirection enum
 
-    // Checking colision against arena's left wall
+    // Checking colision against arena's right wall
     if((self.get_cx() + (self.get_width()/2)) <= (ring.get_x() + ring.get_width())){
       
       // TODO
-      // for(const svg_tools::Rect& r: rectangles) {
-      //   if( 
-      //     (self.get_cx() + (self.get_width()/2) >= (r.x)) &&  
-      //     (self.get_cx() + (self.get_width()/2) <= (r.x + r.width))
-      //   ){
-      //     player_right_colision = true;
-      //     break;
-      //   }
-      //   player_right_colision = false;
-      // }
+      for(const svg_tools::Rect& r: ring.get_obstacles()) {
+        if(
+          // by with 
+          (self.get_cx() + (self.get_width()/2) >= (r.x)) &&  
+          (self.get_cx() + (self.get_width()/2) <= (r.x + r.width)) &&
+
+          // by height
+          ( 
+            // First case=======
+            //     ___
+            //  ---|_|
+            //  |_|
+            //=================== 
+            (((r.y + r.height) >= (self.get_cy() - (self.get_height()/2))) && 
+             ((r.y) <= (self.get_cy() - (self.get_height()/2)))
+            ) ||
+            
+            // Second case=======
+            //  ___
+            //  | |___
+            //  ---|_|
+            //===================
+            ( ((r.y) <= (self.get_cy() + (self.get_height()/2))) &&
+              ((r.y + r.height) >= (self.get_cy() + (self.get_height()/2)))
+            ) ||
+            
+            // with the first and second case, a third case is treated:
+            //     ___  
+            //  ___| |
+            //  |_|  |
+            //     |_|
+            //==================
+
+            // Fourth case
+            //     ___  
+            //     | |____
+            //     |  |__|
+            //     |_|
+            //==================  
+            (((r.y) >= (self.get_cy() - (self.get_height()/2))) &&
+             (r.y + r.height) <= (self.get_cy() + (self.get_height()/2))
+            )
+          )
+        )
+        {
+          player_right_colision = true;
+          break;
+        }
+        player_right_colision = false;
+      }
 
       if(!player_right_colision) {
         self.walk(timeDifference);

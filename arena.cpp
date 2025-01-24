@@ -4,16 +4,25 @@
 /// @brief Initialize arena attributes
 /// @param rectangles 
 void Arena::setup(const std::vector<svg_tools::Rect> &rectangles) {
-  for(const svg_tools::Rect& r: rectangles) { 
+
+  // Copying vector
+  Arena::obstacles = rectangles;
+  int index_of_arena = 0;
+
+  // Checking for arena properties
+  for(const svg_tools::Rect& r: Arena::obstacles) { 
     if(r.color == "blue"){
       Arena::width = r.width;
       Arena::height = r.height;
       Arena::x = r.x;
       Arena::y = r.y;
-      Arena::obstacles = rectangles;  // Copying vector
       break;
     }
+    index_of_arena++;
   }
+
+  // Removing arena from obstacles
+  Arena::obstacles.erase(Arena::obstacles.begin() + index_of_arena);
 }
 
 
@@ -47,12 +56,15 @@ void Arena::draw_rect(
 /// @brief Draws a fixed arena including obstacles
 void Arena::draw() const
 {
-  double z_index = 0;
-  std::array<double, 3> color = {};
+  // std::array<double, 3> color = {};
 
+  // Drawing arena
+  Arena::draw_rect(Arena::x, Arena::y, Arena::width, Arena::height, 0.0, BLUE);
+
+  // Drawing obstacles in front off arena (z-index = 1.0)
   for(const svg_tools::Rect& r: Arena::obstacles) {
-    r.color == "blue" ? (z_index =0.0, color = BLUE) : (z_index = 1.0, color = BLACK); 
-    Arena::draw_rect(r.x, r.y, r.width, r.height, z_index, color);
+    // r.color == "blue" ? (z_index =0.0, color = BLUE) : (z_index = 1.0, color = BLACK); 
+    Arena::draw_rect(r.x, r.y, r.width, r.height, 1.0, BLACK);
   }
 }
 
@@ -89,4 +101,9 @@ double Arena::get_width()
 double Arena::get_high()
 {
   return Arena::height;
+}
+
+std::vector<svg_tools::Rect> Arena::get_obstacles()
+{
+  return Arena::obstacles;
 }

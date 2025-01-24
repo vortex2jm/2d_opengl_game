@@ -36,6 +36,7 @@ class Arena {
     double get_y();
     double get_width();
     double get_high();
+    std::vector<svg_tools::Rect> get_obstacles();
 };
 
 #endif

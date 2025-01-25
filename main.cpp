@@ -23,12 +23,6 @@ int key_status[256] = {0};
 // Jump controls
 JumpState jump_state = JumpState::NotJumping;
 
-// colision control
-bool player_right_colision = false;
-bool player_left_colision = false;
-bool is_player_coliding = false;
-
-
 // Callback declarations
 void init(void);
 void idle(void);
@@ -37,6 +31,10 @@ void renderScene(void);
 void keyUp(unsigned char key, int x, int y);
 void keyPress(unsigned char key, int x, int y);
 void mouseClick(int button, int state, int x, int y);
+
+// game_tools
+bool is_player_into_arena(Player player, Arena arena, HorizontalMoveDirection direction);
+bool is_player_colliding(Player player, Arena arena, HorizontalMoveDirection direction);
 
 //svg data===================================
 std::vector<svg_tools::Rect> rectangles = {};
@@ -210,24 +208,13 @@ void idle(void){
 
   // Horizontal left motion
   if(key_status['a']) {
-    
-    // Checking colision against arena's left wall
-    if((self.get_cx() - (self.get_width()/2)) >= ring.get_x()){
-      
-      // TODO
-      for(const svg_tools::Rect& r: ring.get_obstacles()) {
-        if( 
-          (self.get_cx() - (self.get_width()/2) <= (r.x + r.width)) &&  
-          (self.get_cx() - (self.get_width()/2) >= (r.x))
-        ){
-          player_left_colision = true;
-          break;
-        }
-        player_left_colision = false;
-      }
-
-      if(!player_left_colision) {
+    // Checking arena limits
+    if(is_player_into_arena(self, ring, HorizontalMoveDirection::Left)) {
+      // Checking collision against obstacles
+      if(!is_player_colliding(self, ring, HorizontalMoveDirection::Left)) {
+        
         self.walk(-timeDifference);
+        
         glMatrixMode(GL_PROJECTION);             
           glTranslated((timeDifference* 0.05), 0, 0);
         glMatrixMode(GL_MODELVIEW);
@@ -237,70 +224,17 @@ void idle(void){
 
   // Horizontal right motion
   if(key_status['d']) {
-    
-    // TODO 
-    // Create a colision function using HorizontalMoveDirection enum
-
-    // Checking colision against arena's right wall
-    if((self.get_cx() + (self.get_width()/2)) <= (ring.get_x() + ring.get_width())){
-      
-      // TODO
-      for(const svg_tools::Rect& r: ring.get_obstacles()) {
-        if(
-          // by with 
-          (self.get_cx() + (self.get_width()/2) >= (r.x)) &&  
-          (self.get_cx() + (self.get_width()/2) <= (r.x + r.width)) &&
-
-          // by height
-          ( 
-            // First case=======
-            //     ___
-            //  ---|_|
-            //  |_|
-            //=================== 
-            (((r.y + r.height) >= (self.get_cy() - (self.get_height()/2))) && 
-             ((r.y) <= (self.get_cy() - (self.get_height()/2)))
-            ) ||
-            
-            // Second case=======
-            //  ___
-            //  | |___
-            //  ---|_|
-            //===================
-            ( ((r.y) <= (self.get_cy() + (self.get_height()/2))) &&
-              ((r.y + r.height) >= (self.get_cy() + (self.get_height()/2)))
-            ) ||
-            
-            // with the first and second case, a third case is treated:
-            //     ___  
-            //  ___| |
-            //  |_|  |
-            //     |_|
-            //==================
-
-            // Fourth case
-            //     ___  
-            //     | |____
-            //     |  |__|
-            //     |_|
-            //==================  
-            (((r.y) >= (self.get_cy() - (self.get_height()/2))) &&
-             (r.y + r.height) <= (self.get_cy() + (self.get_height()/2))
-            )
-          )
-        )
-        {
-          player_right_colision = true;
-          break;
-        }
-        player_right_colision = false;
-      }
-
-      if(!player_right_colision) {
+    // Checking arena limits
+    if(is_player_into_arena(self, ring, HorizontalMoveDirection::Right)) {
+      // Checking collision against obstacles
+      if(!is_player_colliding(self, ring, HorizontalMoveDirection::Right)) {
+        
         self.walk(timeDifference);
+        
         glMatrixMode(GL_PROJECTION);             
           glTranslated(-(timeDifference*0.05), 0, 0);
         glMatrixMode(GL_MODELVIEW);
+      
       }
     }
   }
@@ -334,4 +268,88 @@ void mouseClick(int button, int state, int x, int y) {
   if(button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
     key_status[MOUSE_RIGHT] = 0;
   }
+}
+
+//=============================================================================
+bool is_player_into_arena(Player player, Arena arena, HorizontalMoveDirection direction)
+{
+  if(direction == HorizontalMoveDirection::Left) {
+    return ((player.get_cx() - (player.get_width()/2)) >= arena.get_x()); 
+  }
+  // Right
+  return ((player.get_cx() + (player.get_width()/2)) <= (arena.get_x() + arena.get_width()));
+}
+
+//===============================================================================
+bool is_player_colliding(Player player, Arena arena,  HorizontalMoveDirection direction) {
+  if(direction == HorizontalMoveDirection::Right) {
+    for(const svg_tools::Rect& r: arena.get_obstacles()) {
+      if(
+        // by with 
+        (player.get_cx() + (player.get_width()/2) >= (r.x)) &&  
+        (player.get_cx() + (player.get_width()/2) <= (r.x + r.width)) &&
+        // by height
+        ( 
+          // First case=======
+          //     ___
+          //  ---|_|
+          //  |_|
+          //=================== 
+          (((r.y + r.height) >= (player.get_cy() - (player.get_height()/2))) && 
+           ((r.y) <= (player.get_cy() - (player.get_height()/2)))
+          ) || 
+          // Second case=======
+          //  ___
+          //  | |___
+          //  ---|_|
+          //===================
+          ( ((r.y) <= (player.get_cy() + (player.get_height()/2))) &&
+            ((r.y + r.height) >= (player.get_cy() + (player.get_height()/2)))
+          ) ||
+          
+          // with the first and second case, a third case is treated:
+          //     ___  
+          //  ___| |
+          //  |_|  |
+          //     |_|
+          //==================
+          // Fourth case
+          //     ___  
+          //     | |____
+          //     |  |__|
+          //     |_|
+          //==================  
+          (((r.y) >= (player.get_cy() - (player.get_height()/2))) &&
+           (r.y + r.height) <= (player.get_cy() + (player.get_height()/2))
+          )
+        )
+      ){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Left
+  for(const svg_tools::Rect& r: arena.get_obstacles()) {
+    if( 
+      (player.get_cx() - (player.get_width()/2) <= (r.x + r.width)) &&  
+      (player.get_cx() - (player.get_width()/2) >= (r.x)) &&
+      (
+        (((r.y + r.height) >= (player.get_cy() - (player.get_height()/2))) && 
+         ((r.y) <= (player.get_cy() - (player.get_height()/2)))
+        ) ||
+        
+        ( ((r.y) <= (player.get_cy() + (player.get_height()/2))) &&
+          ((r.y + r.height) >= (player.get_cy() + (player.get_height()/2)))
+        ) ||
+        (((r.y) >= (player.get_cy() - (player.get_height()/2))) &&
+         (r.y + r.height) <= (player.get_cy() + (player.get_height()/2))
+        )
+      )
+    ){
+      return true;
+    }
+  }
+  return false;
 }

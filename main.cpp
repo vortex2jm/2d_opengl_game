@@ -36,7 +36,7 @@ void mouseClick(int button, int state, int x, int y);
 bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMoveDirection direction);
 bool is_player_colliding_horizontally(Player player, Arena arena, HorizontalMoveDirection direction);
 bool is_player_into_arena_vertically(Player player, Arena arena);
-bool is_player_colliding_vertically(Player player, Arena arena);
+bool is_player_colliding_vertically(Player player, Arena arena, double timeDiff);
 
 
 //svg data===================================
@@ -237,7 +237,10 @@ void idle(void){
         glMatrixMode(GL_PROJECTION);             
           glTranslated(-(timeDifference*0.05), 0, 0);
         glMatrixMode(GL_MODELVIEW);
-      
+
+
+        //debug
+        // std::cout << (timeDifference * 0.05) << std::endl;
       }
     }
   }
@@ -266,7 +269,7 @@ void idle(void){
       if(!self.jump(
           timeDifference, 
           key_status[MOUSE_RIGHT],
-          false) // Checking collision
+          is_player_colliding_vertically(self, ring, timeDifference)) // Checking collision
         ) {
         jump_state = JumpState::NotJumping;
       }
@@ -391,16 +394,28 @@ bool is_player_colliding_horizontally(Player player, Arena arena,  HorizontalMov
 }
 
 //============================================================
-bool is_player_colliding_vertically(Player player, Arena arena)
-{
+bool is_player_colliding_vertically(Player player, Arena arena, double timeDiff)
+{ 
+  // This factor avoid player halting horizontally against the obstacles when it's jumping.
+  //
+  // This is a hitbox adjustment.
+  //
+  // The horizontal motion is controlled by another function and the player stops when
+  // it's against the obstacle limit. This factor does a little adjustment in this limit 
+  // for the vertical motion function, once the vertical motion function also leads
+  // with horizontal limits and stops the jump based on horizontal limits too.
+  //
+  // Without this adjustment, the player stucks in the wall when it's jumping
+  double horizontal_offset = timeDiff * player.get_velocity() + 0.1;
+
   if(player.get_jump_phase() == JumpPhase::Up) {
     for(const svg_tools::Rect& r: arena.get_obstacles()) {
       if(
-        (player.get_top_edge() <= (r.y + r.height))  && 
+        ((player.get_top_edge() <= (r.y + r.height)) && (player.get_top_edge() >= r.y))  && 
         (
-          ((player.get_right_edge() > r.x) && (player.get_left_edge() < r.x)) ||
-          ((player.get_left_edge() < (r.x + r.width)) && (player.get_right_edge() > (r.x + r.width))) ||
-          ((player.get_left_edge() > r.x) && (player.get_right_edge() < (r.x + r.width)))
+          ((player.get_right_edge() >= r.x + horizontal_offset) && (player.get_left_edge() <= r.x)) ||
+          ((player.get_left_edge() <= (r.x + r.width - horizontal_offset)) && (player.get_right_edge() >= (r.x + r.width))) ||
+          ((player.get_left_edge() >= r.x) && (player.get_right_edge() <= (r.x + r.width)))
         )
       ){
         return true;
@@ -410,17 +425,17 @@ bool is_player_colliding_vertically(Player player, Arena arena)
   }
 
   //Down
-  // for(const svg_tools::Rect& r: arena.get_obstacles()) {
-  //   if(
-  //     (player.get_bottom_edge() >= (r.y)) && 
-  //     (
-  //       ((player.get_right_edge() > r.x) && (player.get_left_edge() < r.x)) ||
-  //       ((player.get_left_edge() < (r.x + r.width)) && (player.get_right_edge() > (r.x + r.width))) ||
-  //       ((player.get_left_edge() > r.x) && (player.get_right_edge() < (r.x + r.width)))
-  //     )
-  //   ){
-  //     return true;
-  //   } 
-  // }
-  // return false;
+  for(const svg_tools::Rect& r: arena.get_obstacles()) {
+    if(
+      ((player.get_bottom_edge() >= (r.y)) && (player.get_bottom_edge() <= (r.y + r.height))) && 
+      (
+        ((player.get_right_edge() >= r.x + horizontal_offset) && (player.get_left_edge() <= r.x)) ||
+        ((player.get_left_edge() <= (r.x + r.width - horizontal_offset)) && (player.get_right_edge() >= (r.x + r.width))) ||
+        ((player.get_left_edge() >= r.x) && (player.get_right_edge() <= (r.x + r.width)))
+      )
+    ){
+      return true;
+    } 
+  }
+  return false;
 }

@@ -234,7 +234,7 @@ int Player::jump(double time_diff, int button_state, bool collide)
   }
 
   // Rising
-  if(button_state == 1 and Player::jump_phase == JumpPhase::Up) {
+  if(button_state == 1 and jump_phase == JumpPhase::Up) {
     if(rise_velocity <= 0 or collide){
       jump_phase = JumpPhase::Down;
       jump_time = 0.0;
@@ -307,4 +307,9 @@ double Player::get_top_edge()
 double Player::get_bottom_edge()
 {
   return Player::cy + (Player::trunk_height/2);
+}
+
+double Player::get_velocity()
+{
+  return Player::velocity;
 }

@@ -88,6 +88,7 @@ class Player {
     double get_right_edge();
     double get_top_edge();
     double get_bottom_edge();
+    double get_velocity();
 };  
 
 #endif

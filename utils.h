@@ -22,6 +22,11 @@ enum JumpPhase {
   Down
 };
 
+enum FallState {
+  NotFalling,
+  Falling
+};
+
 enum HorizontalMoveDirection {
   Left,
   Right

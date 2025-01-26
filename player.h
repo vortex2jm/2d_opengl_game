@@ -80,7 +80,7 @@ class Player {
     void walk(double time_diff);
     void reset_legs_position();
     int jump(double time_diff, int button_state, bool collide);
-    void fall(double time_diff, bool collide);
+    int fall(double time_diff, bool collide);
     
     void set_fall_time(); // unusable
     void set_jump_phase_to_up();

@@ -22,6 +22,7 @@ int key_status[256] = {0};
 
 // Jump controls
 JumpState jump_state = JumpState::NotJumping;
+FallState fall_state = FallState::NotFalling;
 
 // Callback declarations
 void init(void);
@@ -252,10 +253,15 @@ void idle(void){
     
     // self.set_jump_phase_to_down();
 
-    self.fall(
+    if(self.fall(
       timeDifference, 
       falling_collision(self, ring, timeDifference)  
-    );
+      )
+    ) {
+      fall_state = FallState::Falling;
+    } else {
+      fall_state = FallState::NotFalling;
+    }
 
     // self.reset_legs_position();
     
@@ -304,7 +310,7 @@ void mouseClick(int button, int state, int x, int y) {
   if(button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
 
     // The jump key can be activated only when the player is not jumping
-    if(jump_state == JumpState::NotJumping){
+    if(jump_state == JumpState::NotJumping and fall_state == FallState::NotFalling){
       jump_state = JumpState::Jumping;
 
       //void set_jump_phase_to_up(); // VERIFY

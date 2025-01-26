@@ -230,7 +230,7 @@ int Player::jump(double time_diff, int button_state, bool collide)
 }
 
 //=============================================================
-void Player::fall(double time_diff, bool collide)
+int Player::fall(double time_diff, bool collide)
 {
   double acc = 9.8;
   double correction_factor = 200000;
@@ -239,12 +239,13 @@ void Player::fall(double time_diff, bool collide)
   if(Player::cy >= Player::initial_cy or collide) {
     // debug
     fall_time = 0.0;
-    return;
+    return 0;
   }
 
   Player::cy += time_diff * fall_velocity; 
   Player::fall_time += time_diff;
-  Player::reset_legs_position();  
+  Player::reset_legs_position();
+  return 1;  
 }
 
 

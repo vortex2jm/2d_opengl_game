@@ -58,6 +58,7 @@ class Player {
   //jump control===================
   JumpPhase jump_phase = JumpPhase::Up;
   double jump_time = 0.0;
+  double jump_button_last_state = 0;
 
   // Methods======
   void draw_circle(double radius, double z_index, std::array<double, 3> color) const;
@@ -77,11 +78,16 @@ class Player {
     void draw() const;
     void walk(double time_diff);
     void reset_legs_position();
-    int jump(double time_diff, int button_state);
+    int jump(double time_diff, int button_state, bool collide);
     double get_cx();
     double get_cy();
     double get_width();
     double get_height();
+    JumpPhase get_jump_phase();
+    double get_left_edge();
+    double get_right_edge();
+    double get_top_edge();
+    double get_bottom_edge();
 };  
 
 #endif

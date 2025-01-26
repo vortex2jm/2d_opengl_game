@@ -27,7 +27,6 @@ enum HorizontalMoveDirection {
   Right
 };
 
-
 /// @brief Tools and features to manage .svg files
 namespace svg_tools {
   // Intermediate structures to read the svg

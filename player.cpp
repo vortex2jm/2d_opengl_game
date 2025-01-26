@@ -180,35 +180,81 @@ void Player::reset_legs_position()
   Player::knee_joint_angle_2 =0;
 }
 
+// int Player::jump(double time_diff, int button_state)
+// {
+//   // Calculating rise and fall velocity
+//   // v = v0 + at
+//   double acc = 9.8;
+//   double correction_factor = 200000;  
+//   double rise_velocity = (Player::velocity + (-acc * jump_time / correction_factor));
+//   double fall_velocity = (0 + (acc * jump_time /correction_factor));
 
-int Player::jump(double time_diff, int button_state)
+//   // Rising
+//   if(button_state == 1 and Player::jump_phase == JumpPhase::Up) {
+//     if(rise_velocity > 0){
+//       Player::cy -= time_diff * rise_velocity;
+//     }
+//   }
+
+//   // Descending
+//   if(button_state == 0 or jump_phase == JumpPhase::Down or rise_velocity <= 0) {
+//     if(Player::cy < Player::initial_cy) {
+//       Player::cy += time_diff * fall_velocity;
+//     }
+
+//     // Jump finished. PLayer in the initial position
+//     else {
+//       Player::jump_phase = JumpPhase::Up;
+//       Player::jump_time = 0.0;
+//       return 0;
+//     }
+//   }
+
+//   // Updating jump time
+//   Player::jump_time += time_diff;
+//   return 1;
+// }
+
+//================================================================
+int Player::jump(double time_diff, int button_state, bool collide)
 {
-  // Calculating rise and fall velocity velocity
+  // Calculating rise and fall velocity
   // v = v0 + at
   double acc = 9.8;
   double correction_factor = 200000;  
   double rise_velocity = (Player::velocity + (-acc * jump_time / correction_factor));
   double fall_velocity = (0 + (acc * jump_time /correction_factor));
 
-  // Rising
-  if(button_state == 1 and Player::jump_phase == JumpPhase::Up) {
-    if(rise_velocity > 0){
-      Player::cy -= time_diff * rise_velocity;
+  if(button_state == 0){
+    if(jump_button_last_state == 1 and jump_phase == JumpPhase::Up){
+      jump_time = 0.0;
     }
+    jump_phase = JumpPhase::Down;
+    jump_button_last_state = 0;
   }
 
-  // Descending
-  if(button_state == 0 or jump_phase == JumpPhase::Down or rise_velocity <= 0) {
-    if(Player::cy < Player::initial_cy) {
-      Player::cy += time_diff * fall_velocity;
+  // Rising
+  if(button_state == 1 and Player::jump_phase == JumpPhase::Up) {
+    if(rise_velocity <= 0 or collide){
+      jump_phase = JumpPhase::Down;
+      jump_time = 0.0;
+      return 1;
     }
 
-    // Jump finished. PLayer in the initial position
-    else {
-      Player::jump_phase = JumpPhase::Up;
-      Player::jump_time = 0.0;
+    // Rising up
+    Player::cy -= time_diff * rise_velocity;
+    jump_button_last_state = 1;
+  }
+
+  else if(Player::jump_phase == JumpPhase::Down) {
+    if(Player::cy >= Player::initial_cy or collide) {
+      jump_phase = JumpPhase::Up;
+      jump_time = 0.0;
       return 0;
     }
+
+    // Falling down
+    Player::cy += time_diff * fall_velocity;
   }
 
   // Updating jump time
@@ -216,7 +262,8 @@ int Player::jump(double time_diff, int button_state)
   return 1;
 }
 
-// Getters
+
+// Getters============
 double Player::get_cx()
 {
   return Player::cx;
@@ -235,4 +282,29 @@ double Player::get_width()
 double Player::get_height()
 {
   return Player::height;
+}
+
+JumpPhase Player::get_jump_phase()
+{
+  return Player::jump_phase;
+}
+
+double Player::get_left_edge()
+{
+  return Player::cx - (Player::trunk_width/2);
+}
+
+double Player::get_right_edge()
+{
+  return Player::cx + (Player::trunk_width/2);
+}
+
+double Player::get_top_edge()
+{
+  return Player::cy - (Player::trunk_height/2);
+}
+
+double Player::get_bottom_edge()
+{
+  return Player::cy + (Player::trunk_height/2);
 }

@@ -98,7 +98,7 @@ double Arena::get_width()
   return Arena::width;
 }
 
-double Arena::get_high()
+double Arena::get_height()
 {
   return Arena::height;
 }

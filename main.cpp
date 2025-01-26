@@ -33,8 +33,11 @@ void keyPress(unsigned char key, int x, int y);
 void mouseClick(int button, int state, int x, int y);
 
 // game_tools
-bool is_player_into_arena(Player player, Arena arena, HorizontalMoveDirection direction);
-bool is_player_colliding(Player player, Arena arena, HorizontalMoveDirection direction);
+bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMoveDirection direction);
+bool is_player_colliding_horizontally(Player player, Arena arena, HorizontalMoveDirection direction);
+bool is_player_into_arena_vertically(Player player, Arena arena);
+bool is_player_colliding_vertically(Player player, Arena arena);
+
 
 //svg data===================================
 std::vector<svg_tools::Rect> rectangles = {};
@@ -209,9 +212,9 @@ void idle(void){
   // Horizontal left motion
   if(key_status['a']) {
     // Checking arena limits
-    if(is_player_into_arena(self, ring, HorizontalMoveDirection::Left)) {
+    if(is_player_into_arena_horizontally(self, ring, HorizontalMoveDirection::Left)) {
       // Checking collision against obstacles
-      if(!is_player_colliding(self, ring, HorizontalMoveDirection::Left)) {
+      if(!is_player_colliding_horizontally(self, ring, HorizontalMoveDirection::Left)) {
         
         self.walk(-timeDifference);
         
@@ -225,9 +228,9 @@ void idle(void){
   // Horizontal right motion
   if(key_status['d']) {
     // Checking arena limits
-    if(is_player_into_arena(self, ring, HorizontalMoveDirection::Right)) {
+    if(is_player_into_arena_horizontally(self, ring, HorizontalMoveDirection::Right)) {
       // Checking collision against obstacles
-      if(!is_player_colliding(self, ring, HorizontalMoveDirection::Right)) {
+      if(!is_player_colliding_horizontally(self, ring, HorizontalMoveDirection::Right)) {
         
         self.walk(timeDifference);
         
@@ -239,13 +242,35 @@ void idle(void){
     }
   }
 
+  // Jump
+  // if(jump_state == JumpState::Jumping){
+  //   self.reset_legs_position(); // Legs dont move when player is jumping
+    
+  //   if(is_player_into_arena_vertically(self, ring)) {
+  //     if(!self.jump(timeDifference, key_status[MOUSE_RIGHT])){
+  //       jump_state = JumpState::NotJumping;
+  //     }
+  //   }
+  // }
+
 
   // Jump
   if(jump_state == JumpState::Jumping){
-    if(!self.jump(timeDifference, key_status[MOUSE_RIGHT])){
-      jump_state = JumpState::NotJumping;
+    // Legs dont move when player is jumping
+    self.reset_legs_position(); 
+    
+    // Checking if player is into arena
+    if(is_player_into_arena_vertically(self, ring)) {
+      
+      // If jump() returns 0, jump stops
+      if(!self.jump(
+          timeDifference, 
+          key_status[MOUSE_RIGHT],
+          false) // Checking collision
+        ) {
+        jump_state = JumpState::NotJumping;
+      }
     }
-    self.reset_legs_position(); // Legs dont move when player is jumping
   }
 
   glutPostRedisplay();
@@ -254,24 +279,25 @@ void idle(void){
 
 //===================================================
 void mouseClick(int button, int state, int x, int y) {
-  if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+  if(button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
 
     // The jump key can be activated only when the player is not jumping
     if(jump_state == JumpState::NotJumping){
       jump_state = JumpState::Jumping;
       key_status[MOUSE_RIGHT] = 1;
-      //self.jump(); // Supondo que você tenha um método `jump` para o jogador
     }
     return;
   }
 
   if(button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
-    key_status[MOUSE_RIGHT] = 0;
+    key_status[MOUSE_RIGHT] = 0;  // it's necessary to compute when mouse button is pressed to keep the jump up
   }
 }
 
 //=============================================================================
-bool is_player_into_arena(Player player, Arena arena, HorizontalMoveDirection direction)
+// TODO 
+// put direction into player attributes
+bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMoveDirection direction)
 {
   if(direction == HorizontalMoveDirection::Left) {
     return ((player.get_cx() - (player.get_width()/2)) >= arena.get_x()); 
@@ -280,8 +306,18 @@ bool is_player_into_arena(Player player, Arena arena, HorizontalMoveDirection di
   return ((player.get_cx() + (player.get_width()/2)) <= (arena.get_x() + arena.get_width()));
 }
 
+//=============================================================
+bool is_player_into_arena_vertically(Player player, Arena arena)
+{
+  if(player.get_jump_phase() == JumpPhase::Up) {
+    return ((player.get_cy() - (player.get_height()/2)) >= arena.get_y());
+  }
+  return ((player.get_cy() + (player.get_height()/2)) <= (arena.get_y() + arena.get_height()));
+}
+
+
 //===============================================================================
-bool is_player_colliding(Player player, Arena arena,  HorizontalMoveDirection direction) {
+bool is_player_colliding_horizontally(Player player, Arena arena,  HorizontalMoveDirection direction) {
   if(direction == HorizontalMoveDirection::Right) {
     for(const svg_tools::Rect& r: arena.get_obstacles()) {
       if(
@@ -352,4 +388,39 @@ bool is_player_colliding(Player player, Arena arena,  HorizontalMoveDirection di
     }
   }
   return false;
+}
+
+//============================================================
+bool is_player_colliding_vertically(Player player, Arena arena)
+{
+  if(player.get_jump_phase() == JumpPhase::Up) {
+    for(const svg_tools::Rect& r: arena.get_obstacles()) {
+      if(
+        (player.get_top_edge() <= (r.y + r.height))  && 
+        (
+          ((player.get_right_edge() > r.x) && (player.get_left_edge() < r.x)) ||
+          ((player.get_left_edge() < (r.x + r.width)) && (player.get_right_edge() > (r.x + r.width))) ||
+          ((player.get_left_edge() > r.x) && (player.get_right_edge() < (r.x + r.width)))
+        )
+      ){
+        return true;
+      } 
+    }
+    return false;
+  }
+
+  //Down
+  // for(const svg_tools::Rect& r: arena.get_obstacles()) {
+  //   if(
+  //     (player.get_bottom_edge() >= (r.y)) && 
+  //     (
+  //       ((player.get_right_edge() > r.x) && (player.get_left_edge() < r.x)) ||
+  //       ((player.get_left_edge() < (r.x + r.width)) && (player.get_right_edge() > (r.x + r.width))) ||
+  //       ((player.get_left_edge() > r.x) && (player.get_right_edge() < (r.x + r.width)))
+  //     )
+  //   ){
+  //     return true;
+  //   } 
+  // }
+  // return false;
 }

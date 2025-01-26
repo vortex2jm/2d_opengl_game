@@ -1,5 +1,6 @@
 #include "player.h"
 #include <cmath>
+#include <iostream>
 
 void Player::setup(const svg_tools::Circ &circle)
 {
@@ -236,6 +237,10 @@ int Player::jump(double time_diff, int button_state, bool collide)
   // Rising
   if(button_state == 1 and jump_phase == JumpPhase::Up) {
     if(rise_velocity <= 0 or collide){
+      
+      // debug
+      std::cout << "collide or vel = 0" << std::endl;
+      
       jump_phase = JumpPhase::Down;
       jump_time = 0.0;
       return 1;
@@ -301,12 +306,12 @@ double Player::get_right_edge()
 
 double Player::get_top_edge()
 {
-  return Player::cy - (Player::trunk_height/2);
+  return Player::cy - (Player::height/2);
 }
 
 double Player::get_bottom_edge()
 {
-  return Player::cy + (Player::trunk_height/2);
+  return Player::cy + (Player::height/2);
 }
 
 double Player::get_velocity()

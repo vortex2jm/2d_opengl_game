@@ -34,7 +34,7 @@ void mouseClick(int button, int state, int x, int y);
 
 // game_tools
 bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMoveDirection direction);
-bool is_player_colliding_horizontally(Player player, Arena arena, HorizontalMoveDirection direction);
+bool is_player_colliding_horizontally(Player player, Arena arena, HorizontalMoveDirection direction, double timeDiff);
 bool is_player_into_arena_vertically(Player player, Arena arena);
 bool is_player_colliding_vertically(Player player, Arena arena, double timeDiff);
 
@@ -214,7 +214,7 @@ void idle(void){
     // Checking arena limits
     if(is_player_into_arena_horizontally(self, ring, HorizontalMoveDirection::Left)) {
       // Checking collision against obstacles
-      if(!is_player_colliding_horizontally(self, ring, HorizontalMoveDirection::Left)) {
+      if(!is_player_colliding_horizontally(self, ring, HorizontalMoveDirection::Left, timeDifference)) {
         
         self.walk(-timeDifference);
         
@@ -230,7 +230,7 @@ void idle(void){
     // Checking arena limits
     if(is_player_into_arena_horizontally(self, ring, HorizontalMoveDirection::Right)) {
       // Checking collision against obstacles
-      if(!is_player_colliding_horizontally(self, ring, HorizontalMoveDirection::Right)) {
+      if(!is_player_colliding_horizontally(self, ring, HorizontalMoveDirection::Right, timeDifference)) {
         
         self.walk(timeDifference);
         
@@ -320,7 +320,10 @@ bool is_player_into_arena_vertically(Player player, Arena arena)
 
 
 //===============================================================================
-bool is_player_colliding_horizontally(Player player, Arena arena,  HorizontalMoveDirection direction) {
+bool is_player_colliding_horizontally(Player player, Arena arena,  HorizontalMoveDirection direction, double timeDiff) {
+  
+  double vertical_offset = timeDiff * player.get_velocity() + 0.1;
+  
   if(direction == HorizontalMoveDirection::Right) {
     for(const svg_tools::Rect& r: arena.get_obstacles()) {
       if(
@@ -334,7 +337,7 @@ bool is_player_colliding_horizontally(Player player, Arena arena,  HorizontalMov
           //  ---|_|
           //  |_|
           //=================== 
-          (((r.y + r.height) >= (player.get_cy() - (player.get_height()/2))) && 
+          (((r.y + r.height - vertical_offset) >= (player.get_cy() - (player.get_height()/2))) && 
            ((r.y) <= (player.get_cy() - (player.get_height()/2)))
           ) || 
           // Second case=======
@@ -342,7 +345,7 @@ bool is_player_colliding_horizontally(Player player, Arena arena,  HorizontalMov
           //  | |___
           //  ---|_|
           //===================
-          ( ((r.y) <= (player.get_cy() + (player.get_height()/2))) &&
+          ( ((r.y + vertical_offset) <= (player.get_cy() + (player.get_height()/2))) &&
             ((r.y + r.height) >= (player.get_cy() + (player.get_height()/2)))
           ) ||
           
@@ -375,11 +378,11 @@ bool is_player_colliding_horizontally(Player player, Arena arena,  HorizontalMov
       (player.get_cx() - (player.get_width()/2) <= (r.x + r.width)) &&  
       (player.get_cx() - (player.get_width()/2) >= (r.x)) &&
       (
-        (((r.y + r.height) >= (player.get_cy() - (player.get_height()/2))) && 
+        (((r.y + r.height - vertical_offset) >= (player.get_cy() - (player.get_height()/2))) && 
          ((r.y) <= (player.get_cy() - (player.get_height()/2)))
         ) ||
         
-        ( ((r.y) <= (player.get_cy() + (player.get_height()/2))) &&
+        ( ((r.y + vertical_offset) <= (player.get_cy() + (player.get_height()/2))) &&
           ((r.y + r.height) >= (player.get_cy() + (player.get_height()/2)))
         ) ||
         (((r.y) >= (player.get_cy() - (player.get_height()/2))) &&
@@ -409,6 +412,8 @@ bool is_player_colliding_vertically(Player player, Arena arena, double timeDiff)
   double horizontal_offset = timeDiff * player.get_velocity() + 0.1;
 
   if(player.get_jump_phase() == JumpPhase::Up) {
+    
+    std::cout << "COMEÇOU O FOR" << std::endl;
     for(const svg_tools::Rect& r: arena.get_obstacles()) {
       if(
         ((player.get_top_edge() <= (r.y + r.height)) && (player.get_top_edge() >= r.y))  && 
@@ -418,8 +423,12 @@ bool is_player_colliding_vertically(Player player, Arena arena, double timeDiff)
           ((player.get_left_edge() >= r.x) && (player.get_right_edge() <= (r.x + r.width)))
         )
       ){
+        // debug
+        std::cout << "colidiu: " << player.get_top_edge() << ", " << r.y <<  ", " << r.y + r.height <<std::endl;
         return true;
       } 
+      // debug
+      std::cout << "NÃO colidiu: " << player.get_top_edge() << ", " << r.y <<  ", " << r.y + r.height <<std::endl;
     }
     return false;
   }

@@ -9,10 +9,10 @@
 
 
 // Size propotions
-#define HEAD_PROP   0.15
+#define HEAD_PROP   0.30
 #define ARMS_PROP   0.30
 #define TRUNK_PROP  0.40
-#define LEGS_PROP   0.45
+#define LEGS_PROP   0.30
 
 // Z-coord
 #define PLAYER_Z_INDEX 1.0

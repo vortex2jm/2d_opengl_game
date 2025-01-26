@@ -181,41 +181,6 @@ void Player::reset_legs_position()
   Player::knee_joint_angle_2 =0;
 }
 
-// int Player::jump(double time_diff, int button_state)
-// {
-//   // Calculating rise and fall velocity
-//   // v = v0 + at
-//   double acc = 9.8;
-//   double correction_factor = 200000;  
-//   double rise_velocity = (Player::velocity + (-acc * jump_time / correction_factor));
-//   double fall_velocity = (0 + (acc * jump_time /correction_factor));
-
-//   // Rising
-//   if(button_state == 1 and Player::jump_phase == JumpPhase::Up) {
-//     if(rise_velocity > 0){
-//       Player::cy -= time_diff * rise_velocity;
-//     }
-//   }
-
-//   // Descending
-//   if(button_state == 0 or jump_phase == JumpPhase::Down or rise_velocity <= 0) {
-//     if(Player::cy < Player::initial_cy) {
-//       Player::cy += time_diff * fall_velocity;
-//     }
-
-//     // Jump finished. PLayer in the initial position
-//     else {
-//       Player::jump_phase = JumpPhase::Up;
-//       Player::jump_time = 0.0;
-//       return 0;
-//     }
-//   }
-
-//   // Updating jump time
-//   Player::jump_time += time_diff;
-//   return 1;
-// }
-
 //================================================================
 int Player::jump(double time_diff, int button_state, bool collide)
 {
@@ -228,7 +193,7 @@ int Player::jump(double time_diff, int button_state, bool collide)
 
   if(button_state == 0){
     if(jump_button_last_state == 1 and jump_phase == JumpPhase::Up){
-      jump_time = 0.0;
+      jump_time = 0.0;  // Resetting jump time to fall
     }
     jump_phase = JumpPhase::Down;
     jump_button_last_state = 0;
@@ -237,10 +202,6 @@ int Player::jump(double time_diff, int button_state, bool collide)
   // Rising
   if(button_state == 1 and jump_phase == JumpPhase::Up) {
     if(rise_velocity <= 0 or collide){
-      
-      // debug
-      std::cout << "collide or vel = 0" << std::endl;
-      
       jump_phase = JumpPhase::Down;
       jump_time = 0.0;
       return 1;
@@ -251,6 +212,7 @@ int Player::jump(double time_diff, int button_state, bool collide)
     jump_button_last_state = 1;
   }
 
+  // Falling
   else if(Player::jump_phase == JumpPhase::Down) {
     if(Player::cy >= Player::initial_cy or collide) {
       jump_phase = JumpPhase::Up;
@@ -267,6 +229,40 @@ int Player::jump(double time_diff, int button_state, bool collide)
   return 1;
 }
 
+//=============================================================
+void Player::fall(double time_diff, bool collide)
+{
+  double acc = 9.8;
+  double correction_factor = 200000;
+  double fall_velocity = (0 + (acc * fall_time /correction_factor));
+
+  if(Player::cy >= Player::initial_cy or collide) {
+    // debug
+    fall_time = 0.0;
+    return;
+  }
+
+  Player::cy += time_diff * fall_velocity; 
+  Player::fall_time += time_diff;
+  Player::reset_legs_position();  
+}
+
+
+// Setters================
+void Player::set_fall_time()
+{
+  Player::fall_time = 0.0;
+}
+
+void Player::set_jump_phase_to_up()
+{
+  Player::jump_phase = JumpPhase::Up;
+}
+
+void Player::set_jump_phase_to_down()
+{
+  Player::jump_phase = JumpPhase::Down;
+}
 
 // Getters============
 double Player::get_cx()

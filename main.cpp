@@ -45,9 +45,9 @@ double get_time_diff();
 
 // game_tools
 bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMoveDirection direction);
-bool walking_collision(Player player, Arena arena, std::vector<Player> enemies, HorizontalMoveDirection direction, double timeDiff);
-bool jumping_collision(Player player, Arena arena, std::vector<Player> enemies, double timeDiff);
-bool falling_collision(Player player, Arena arena, std::vector<Player> enemies, double timeDiff);
+bool walking_collision(Player &player, Arena arena, std::vector<Player> enemies, HorizontalMoveDirection direction, double timeDiff);
+bool jumping_collision(Player &player, Arena arena, std::vector<Player> enemies, double timeDiff);
+bool falling_collision(Player &player, Arena arena, std::vector<Player> enemies, double timeDiff);
 
 //svg data===================================
 std::vector<svg_tools::Rect> rectangles = {};
@@ -340,6 +340,8 @@ void mouseMotion(int x, int y)
   double deg = rad * 180.0/M_PI;
 
   self.set_arm_angle(-deg);
+  
+  glutPostRedisplay();
 }
 
 
@@ -385,7 +387,7 @@ bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMov
 //=======================================================================================================
 // TODO - Create arena hitbox functions
 //=======================================
-bool walking_collision(Player player, Arena arena, std::vector<Player> enemies, HorizontalMoveDirection direction, double timeDiff) {
+bool walking_collision(Player &player, Arena arena, std::vector<Player> enemies, HorizontalMoveDirection direction, double timeDiff) {
   
   double vertical_offset = timeDiff * player.get_velocity() + 0.1;
   
@@ -413,6 +415,10 @@ bool walking_collision(Player player, Arena arena, std::vector<Player> enemies, 
           )
         )
       ){
+
+        // double new_cx = player.get_cx() - (player.get_right_edge() - r.x);
+        // player.set_cx(new_cx);
+
         return true;
       }
     }
@@ -438,6 +444,10 @@ bool walking_collision(Player player, Arena arena, std::vector<Player> enemies, 
           )
         )
       ){
+
+        double new_cx = player.get_cx() - (player.get_right_edge() - enemy.get_left_edge());
+        player.set_cx(new_cx);
+
         return true;
       }
     }
@@ -463,6 +473,10 @@ bool walking_collision(Player player, Arena arena, std::vector<Player> enemies, 
         )
       )
     ){
+
+      // double new_cx = player.get_cx() + ((r.x + r.width) - player.get_left_edge());
+      // player.set_cx(new_cx);
+      
       return true;
     }
   }
@@ -484,6 +498,10 @@ bool walking_collision(Player player, Arena arena, std::vector<Player> enemies, 
         )
       )
     ){
+
+      double new_cx = player.get_cx() + (enemy.get_right_edge() - player.get_left_edge());
+      player.set_cx(new_cx);
+
       return true;
     }
   }
@@ -493,7 +511,7 @@ bool walking_collision(Player player, Arena arena, std::vector<Player> enemies, 
 
 
 //=============================================================================
-bool jumping_collision(Player player, Arena arena, std::vector<Player> enemies, double timeDiff)
+bool jumping_collision(Player &player, Arena arena, std::vector<Player> enemies, double timeDiff)
 { 
   // This factor avoid player halting horizontally against the obstacles when it's jumping.
   //
@@ -505,7 +523,11 @@ bool jumping_collision(Player player, Arena arena, std::vector<Player> enemies, 
   // with horizontal limits and stops the jump based on horizontal limits too.
   //
   // Without this adjustment, the player stucks in the wall when it's jumping
+
+
+  // TODO - this offset is not working because the displacement grows with time
   double horizontal_offset = timeDiff * player.get_velocity() + 0.1;
+
 
   if(player.get_jump_phase() == JumpPhase::Up) {
     
@@ -551,6 +573,11 @@ bool jumping_collision(Player player, Arena arena, std::vector<Player> enemies, 
         ((player.get_left_edge() >= r.x) && (player.get_right_edge() <= (r.x + r.width)))
       )
     ){
+      
+      // Respecting hitboxes
+      double new_cy = player.get_cy() - (player.get_bottom_edge() - r.y);
+      player.set_cy(new_cy);
+
       return true;
     } 
   }
@@ -564,6 +591,10 @@ bool jumping_collision(Player player, Arena arena, std::vector<Player> enemies, 
         ((player.get_left_edge() >= enemy.get_left_edge()) && (player.get_right_edge() <= enemy.get_right_edge()))
       )
     ){
+
+      double new_cy = player.get_cy() - (player.get_bottom_edge() - enemy.get_top_edge());
+      player.set_cy(new_cy);
+
       return true;
     } 
    }
@@ -573,7 +604,7 @@ bool jumping_collision(Player player, Arena arena, std::vector<Player> enemies, 
 
 
 //=================================================================
-bool falling_collision(Player player, Arena arena, std::vector<Player> enemies, double timeDiff)
+bool falling_collision(Player &player, Arena arena, std::vector<Player> enemies, double timeDiff)
 {
   double horizontal_offset = timeDiff * player.get_velocity() + 0.1;
 
@@ -587,6 +618,11 @@ bool falling_collision(Player player, Arena arena, std::vector<Player> enemies, 
         ((player.get_left_edge() >= r.x) && (player.get_right_edge() <= (r.x + r.width)))
       )
     ){
+
+      // Respecting hitboxes
+      double new_cy = player.get_cy() - (player.get_bottom_edge() - r.y);
+      player.set_cy(new_cy);
+      
       return true;
     } 
   }
@@ -601,6 +637,10 @@ bool falling_collision(Player player, Arena arena, std::vector<Player> enemies, 
       ((player.get_left_edge() >= enemy.get_left_edge()) && (player.get_right_edge() <= enemy.get_right_edge()))
     )
     ){
+
+      double new_cy = player.get_cy() - (player.get_bottom_edge() - enemy.get_top_edge());
+      player.set_cy(new_cy);
+      
       return true;
     } 
   }  

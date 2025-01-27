@@ -113,6 +113,8 @@ class Player {
     
     void set_arm_angle(double angle);
     void set_arm_angle_base(double angle);
+    void set_cy(double cy);
+    void set_cx(double cx);
     
     // external items
     Shot * shoot();

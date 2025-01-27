@@ -354,6 +354,16 @@ void Player::set_arm_angle_base(double angle)
   Player::arms_angle_base = angle;
 }
 
+void Player::set_cy(double cy)
+{
+  Player::cy = cy;
+}
+
+void Player::set_cx(double cx)
+{
+  Player::cx = cx;
+}
+
 //==================
 Shot *Player::shoot()
 {

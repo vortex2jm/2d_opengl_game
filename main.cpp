@@ -477,12 +477,13 @@ bool jumping_collision(Player player, Arena arena, double timeDiff)
   if(player.get_jump_phase() == JumpPhase::Up) {
     for(const svg_tools::Rect& r: arena.get_obstacles()) {
       if(
-        ((player.get_top_edge() <= (r.y + r.height)) && (player.get_top_edge() >= r.y))  && 
+        (((player.get_top_edge() <= (r.y + r.height)) && (player.get_top_edge() >= r.y))  && 
         (
           ((player.get_right_edge() >= r.x + horizontal_offset) && (player.get_left_edge() <= r.x)) ||
           ((player.get_left_edge() <= (r.x + r.width - horizontal_offset)) && (player.get_right_edge() >= (r.x + r.width))) ||
           ((player.get_left_edge() >= r.x) && (player.get_right_edge() <= (r.x + r.width)))
-        )
+        )) ||
+        (player.get_top_edge() <= arena.get_y())
       ){
         return true;
       } 

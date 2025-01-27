@@ -12,6 +12,7 @@
 #include "arena.h"
 
 #define MOUSE_RIGHT 255
+#define GRAVITY 28
 
 // Window dimensions
 const GLint Width = 700;
@@ -32,6 +33,10 @@ void renderScene(void);
 void keyUp(unsigned char key, int x, int y);
 void keyPress(unsigned char key, int x, int y);
 void mouseClick(int button, int state, int x, int y);
+
+// utilities
+void set_camera(double time, double velocity, HorizontalMoveDirection direction);
+double get_time_diff();
 
 // game_tools
 bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMoveDirection direction);
@@ -197,52 +202,49 @@ void keyPress(unsigned char key, int x, int y){
 
 //=============
 void idle(void){
-  // Setting frame rate
-  static double previousTime = glutGet(GLUT_ELAPSED_TIME);
-  double currentTime, timeDifference;
-  currentTime = glutGet(GLUT_ELAPSED_TIME);
-  timeDifference = currentTime - previousTime;
-  previousTime = currentTime;
+  // Don't delete this part=================================
+  // static double previousTime = glutGet(GLUT_ELAPSED_TIME);
+  // double currentTime, timeDifference;
+  // currentTime = glutGet(GLUT_ELAPSED_TIME);
+  // timeDifference = currentTime - previousTime;
+  // previousTime = currentTime;
+  //========================================================
 
-  // Horizontal left motion
+  // Setting time passed between iteration
+  double timeDifference = get_time_diff();
+
+  // Horizontal left motion===========
   if(key_status['a']) {
     // Checking arena limits
     if(is_player_into_arena_horizontally(self, ring, HorizontalMoveDirection::Left)) {
       // Checking collision against obstacles
       if(!walking_collision(self, ring, HorizontalMoveDirection::Left, timeDifference)) {
         // Walking
-        self.walk(-timeDifference);
-        // Updating camera position
-        glMatrixMode(GL_PROJECTION);             
-          glTranslated((timeDifference* self.get_velocity()), 0, 0);
-        glMatrixMode(GL_MODELVIEW);
+        self.walk(timeDifference, HorizontalMoveDirection::Left);
+        set_camera(timeDifference, self.get_velocity(), HorizontalMoveDirection::Left);
       }
     }
   }
 
-  // Horizontal right motion
+  // Horizontal right motion=========
   if(key_status['d']) {
     // Checking arena limits
     if(is_player_into_arena_horizontally(self, ring, HorizontalMoveDirection::Right)) {
       // Checking collision against obstacles
       if(!walking_collision(self, ring, HorizontalMoveDirection::Right, timeDifference)) {
-        
         // Walking
-        self.walk(timeDifference);
-        
-        glMatrixMode(GL_PROJECTION);             
-          glTranslated(-(timeDifference*self.get_velocity()), 0, 0);
-        glMatrixMode(GL_MODELVIEW);
-
+        self.walk(timeDifference, HorizontalMoveDirection::Right);
+        set_camera(timeDifference, self.get_velocity(), HorizontalMoveDirection::Right);
       }
     }
   }
 
 
-  //Gravity physics
+  //Gravity physics=========================
   if(jump_state == JumpState::NotJumping) {
     if(self.fall(
         timeDifference, 
+        GRAVITY,
         falling_collision(self, ring, timeDifference)  
       )
     ) {
@@ -253,17 +255,19 @@ void idle(void){
   }
 
 
-  // Jump
+  // Jump==============================
   if(jump_state == JumpState::Jumping){
     // If jump() returns 0, jump finished
     if(!self.jump(
         timeDifference, 
+        GRAVITY,
         key_status[MOUSE_RIGHT],
-        jumping_collision(self, ring, timeDifference)) // Checking collision
+        jumping_collision(self, ring, timeDifference))
       ) {
       jump_state = JumpState::NotJumping;
     }
   }
+
 
   glutPostRedisplay();
 }
@@ -284,6 +288,32 @@ void mouseClick(int button, int state, int x, int y) {
   if(button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
     key_status[MOUSE_RIGHT] = 0;  // it's necessary to compute when mouse button is pressed to keep the jump up
   }
+}
+
+//===============================================================================
+void set_camera(double time, double velocity, HorizontalMoveDirection direction)
+{
+  double displacement = time * velocity; 
+
+  if(direction == HorizontalMoveDirection::Right){
+    displacement *= -1;
+  }
+
+  glMatrixMode(GL_PROJECTION);             
+    glTranslated(displacement, 0, 0);
+  glMatrixMode(GL_MODELVIEW);
+}
+
+
+//===================
+double get_time_diff()
+{
+  static double previousTime = glutGet(GLUT_ELAPSED_TIME);
+  double currentTime, timeDifference;
+  currentTime = glutGet(GLUT_ELAPSED_TIME);
+  timeDifference = currentTime - previousTime;
+  previousTime = currentTime;
+  return timeDifference;
 }
 
 

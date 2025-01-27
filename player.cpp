@@ -140,7 +140,7 @@ void Player::draw() const
 
 
 //=================================
-void Player::walk(double time_diff) 
+void Player::walk(double time_diff, HorizontalMoveDirection direction) 
 {
   // Legs motion must be described by a periodic function
   // lower legs ->  y = 15 * (sin(kx) + 1)
@@ -148,8 +148,13 @@ void Player::walk(double time_diff)
   // While one lag is moving frontward, the other is moving backward
   // The frequency has been set to simulates a natural movement
   
+  double displacement = time_diff * Player::velocity;
+  if(direction == HorizontalMoveDirection::Left){
+    displacement *= -1;
+  }
+
   // Translating player
-  Player::cx += time_diff * Player::velocity;
+  Player::cx += displacement;
   
   // The legs have opposite phases
   Player::x_variation_leg1 += time_diff * Player::velocity; 
@@ -186,13 +191,13 @@ void Player::reset_legs_position()
 }
 
 //================================================================
-int Player::jump(double time_diff, int button_state, bool collide)
+int Player::jump(double time_diff, double acc ,int button_state, bool collide)
 {
   // Calculating rise and fall velocity
   // v = v0 + at
-  double acc = 9.8;
-  double correction_factor = 200000;  
-  double rise_velocity = (Player::velocity + (-acc * jump_time / correction_factor));
+  // double acc = 9.8;
+  double correction_factor = CORRECT_FACTOR;  
+  double rise_velocity = (Player::jump_velocity + (-acc * jump_time / correction_factor));
   double fall_velocity = (0 + (acc * jump_time /correction_factor));
 
   if(button_state == 0){
@@ -236,10 +241,10 @@ int Player::jump(double time_diff, int button_state, bool collide)
 
 
 //==============================================
-int Player::fall(double time_diff, bool collide)
+int Player::fall(double time_diff, double acc, bool collide)
 {
-  double acc = 9.8;
-  double correction_factor = 200000;
+  // double acc = 9.8;
+  double correction_factor = CORRECT_FACTOR;
   double fall_velocity = (0 + (acc * fall_time /correction_factor));
 
   if(Player::cy >= Player::initial_cy or collide) {

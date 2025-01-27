@@ -19,6 +19,9 @@
 // Legs movements adjustment
 #define LEGS_FREQUENCY 0.5
 
+// Jump physics
+#define CORRECT_FACTOR 200000
+
 
 class Player {
   // Private
@@ -26,6 +29,7 @@ class Player {
   double cy = 0;
   double height;
   double velocity = 0.05;
+  double jump_velocity = 0.075;
 
   // Initial position
   double initial_cx = 0;
@@ -76,14 +80,14 @@ class Player {
     void draw() const;
     
     // walk control
-    void walk(double time_diff);
+    void walk(double time_diff, HorizontalMoveDirection direction);
     void reset_legs_position();
 
     // fall control
-    int fall(double time_diff, bool collide);
+    int fall(double time_diff, double acc, bool collide);
     
     // jump control
-    int jump(double time_diff, int button_state, bool collide);
+    int jump(double time_diff, double acc, int button_state, bool collide);
     JumpPhase get_jump_phase();
 
     // Hitbox

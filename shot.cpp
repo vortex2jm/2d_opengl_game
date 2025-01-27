@@ -32,9 +32,6 @@ void Shot::draw_circle(double radius, double R, double G, double B)
 
 void Shot::draw()
 {
-  //debug
-  std::cout << Shot::x << ", " << Shot::y << std::endl;
-
   glPushMatrix();
     glTranslatef(Shot::x, Shot::y, 0);
     Shot::draw_circle(Shot::radius, 1, 1, 1);  

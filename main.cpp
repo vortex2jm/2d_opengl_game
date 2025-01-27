@@ -275,13 +275,6 @@ void idle(void){
     }
   }
 
-  // Shot=====================
-  if(key_status[MOUSE_LEFT]) {
-    // std::cout << "idle shot" << std::endl;
-    shots.push_back(self.shoot());
-  }
-
-
   for (auto shot = shots.begin(); shot != shots.end();) {
     if(*shot) {
         (*shot)->move(timeDifference); 
@@ -316,12 +309,8 @@ void mouseClick(int button, int state, int x, int y) {
   }
 
   if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-    key_status[MOUSE_LEFT] = 1;
+    shots.push_back(self.shoot());
     return;
-  }
-
-  if(button == GLUT_LEFT_BUTTON && state == GLUT_UP){
-    key_status[MOUSE_LEFT] = 0;
   }
 }
 

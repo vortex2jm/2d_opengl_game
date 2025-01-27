@@ -24,9 +24,6 @@ namespace svg_tools {
 
       r.push_back({ x, y, width, height, color });
 
-      // debug
-      // std::cout << x << y << width << height << color << std::endl;
-
       rect = rect->NextSiblingElement("rect");
     }
 
@@ -40,9 +37,6 @@ namespace svg_tools {
       std::string color = circ->Attribute("fill");
 
       c.push_back({ cx, cy, r, color });
-
-      // debug
-      // std::cout << cx << cy << r << color << std::endl;
 
       circ = circ->NextSiblingElement("circle");
     }

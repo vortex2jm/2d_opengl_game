@@ -147,13 +147,22 @@ void Player::walk(double time_diff, HorizontalMoveDirection direction)
   // upper legs  ->  y = 15 * sin(kx)
   // While one lag is moving frontward, the other is moving backward
   // The frequency has been set to simulates a natural movement
-  
+  Player::walk_direction = direction;
+
   double displacement = time_diff * Player::velocity;
   if(direction == HorizontalMoveDirection::Left){
     displacement *= -1;
   }
 
   double phase = (direction == HorizontalMoveDirection::Left) ? -1.0 : 1.0;
+  
+  // Change arms direction
+  // if(phase < 0){
+  //   Player::set_arm_angle_base(ARM_ANGLE_BASE_LEFT);
+  // } else {
+  //   Player::set_arm_angle_base(ARM_ANGLE_BASE_RIGHT);
+  // }
+
 
   // Translating player
   Player::cx += displacement;
@@ -311,18 +320,40 @@ double Player::get_initial_cx()
 //Setters
 void Player::set_arm_angle(double angle)
 {
-  Player::arms_angle = ARM_ANGLE_BASE + angle;
+  // Right motion
+  // if(walk_direction == HorizontalMoveDirection::Right){
+    
+    Player::arms_angle = Player::arms_angle_base + angle;
+    
+    if(Player::arms_angle <= -135){
+      Player::arms_angle = -135;
+      return;
+    }
 
-  if(Player::arms_angle <= -135){
-    Player::arms_angle = -135;
-    return;
-  }
+    if(Player::arms_angle >= -45){
+      Player::arms_angle = -45;
+    }
+    // return;
+  // }
 
-  if(Player::arms_angle >= -45){
-    Player::arms_angle = -45;
-  }
+  // Left motion================
+  // Player::arms_angle = Player::arms_angle_base - angle;
+  // if(Player::arms_angle >= 135){
+  //   Player::arms_angle = 135;
+  //   return;
+  // }
+
+  // if(Player::arms_angle <= 45){
+  //   Player::arms_angle = 45;
+  // }
+  // return;
 }
 
+
+void Player::set_arm_angle_base(double angle)
+{
+  Player::arms_angle_base = angle;
+}
 
 //==================
 Shot *Player::shoot()

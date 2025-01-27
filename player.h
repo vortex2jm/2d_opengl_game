@@ -13,7 +13,8 @@
 #define ARMS_PROP   0.30
 #define TRUNK_PROP  0.40
 #define LEGS_PROP   0.30
-#define ARM_ANGLE_BASE -90
+#define ARM_ANGLE_BASE_RIGHT -90
+#define ARM_ANGLE_BASE_LEFT 90
 
 // Z-coord
 #define PLAYER_Z_INDEX 1.0
@@ -52,7 +53,8 @@ class Player {
   //arms===================
   double arms_width = 0;
   double arms_height = 0;
-  double arms_angle = ARM_ANGLE_BASE;
+  double arms_angle_base = ARM_ANGLE_BASE_RIGHT;
+  double arms_angle = ARM_ANGLE_BASE_RIGHT;
 
   //trunk===============
   double trunk_width = 0;
@@ -66,6 +68,9 @@ class Player {
   double jump_button_last_state = 0;
   double jump_time = 0.0;
   double fall_time = 0;
+
+  // walk control
+  HorizontalMoveDirection walk_direction = HorizontalMoveDirection::Right;
 
   // Methods======
   void draw_circle(double radius, double z_index, std::array<double, 3> color) const;
@@ -104,7 +109,10 @@ class Player {
     double get_cy();
     double get_cx();
     double get_initial_cx();
+    
     void set_arm_angle(double angle);
+    void set_arm_angle_base(double angle);
+    
     // external items
     Shot * shoot();
 };  

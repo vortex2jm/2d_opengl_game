@@ -2,6 +2,7 @@
 #include <cmath>
 #include <iostream>
 
+
 void Player::setup(const svg_tools::Circ &circle)
 {
   Player::cx = circle.cx;
@@ -95,6 +96,7 @@ void Player::draw_arm(double x, double y, double theta, double z_index, std::arr
   glPopMatrix();
 }
 
+
 void Player::draw_leg(double x, double y, double theta1, double theta2, double z_index, std::array<double, 3> color) const
 {
   glPushMatrix();
@@ -106,6 +108,7 @@ void Player::draw_leg(double x, double y, double theta1, double theta2, double z
     Player::draw_rect_by_base(Player::legs_width, Player::legs_height/2, z_index, color);
   glPopMatrix();
 }
+
 
 void Player::draw() const
 {
@@ -136,7 +139,7 @@ void Player::draw() const
 }
 
 
-// to refactor
+//=================================
 void Player::walk(double time_diff) 
 {
   // Legs motion must be described by a periodic function
@@ -173,6 +176,7 @@ void Player::walk(double time_diff)
 }
 
 
+//================================
 void Player::reset_legs_position()
 {
   Player::hip_joint_angle1 = 0;
@@ -193,7 +197,7 @@ int Player::jump(double time_diff, int button_state, bool collide)
 
   if(button_state == 0){
     if(jump_button_last_state == 1 and jump_phase == JumpPhase::Up){
-      jump_time = 0.0;  // Resetting jump time to fall
+      jump_time = 0.0;  // Resetting jump time to start falling
     }
     jump_phase = JumpPhase::Down;
     jump_button_last_state = 0;
@@ -226,10 +230,12 @@ int Player::jump(double time_diff, int button_state, bool collide)
 
   // Updating jump time
   Player::jump_time += time_diff;
+  Player::reset_legs_position();
   return 1;
 }
 
-//=============================================================
+
+//==============================================
 int Player::fall(double time_diff, bool collide)
 {
   double acc = 9.8;
@@ -237,7 +243,7 @@ int Player::fall(double time_diff, bool collide)
   double fall_velocity = (0 + (acc * fall_time /correction_factor));
 
   if(Player::cy >= Player::initial_cy or collide) {
-    // debug
+    // Restarting fall time
     fall_time = 0.0;
     return 0;
   }
@@ -249,43 +255,7 @@ int Player::fall(double time_diff, bool collide)
 }
 
 
-// Setters================
-void Player::set_fall_time()
-{
-  Player::fall_time = 0.0;
-}
-
-void Player::set_jump_phase_to_up()
-{
-  Player::jump_phase = JumpPhase::Up;
-}
-
-void Player::set_jump_phase_to_down()
-{
-  Player::jump_phase = JumpPhase::Down;
-}
-
-// Getters============
-double Player::get_cx()
-{
-  return Player::cx;
-}
-
-double Player::get_cy()
-{
-  return Player::cy;
-}
-
-double Player::get_width()
-{
-  return Player::trunk_width;
-}
-
-double Player::get_height()
-{
-  return Player::height;
-}
-
+// Getters=======================
 JumpPhase Player::get_jump_phase()
 {
   return Player::jump_phase;

@@ -7,7 +7,6 @@
 
 #include "utils.h"
 
-
 // Size propotions
 #define HEAD_PROP   0.30
 #define ARMS_PROP   0.30
@@ -57,8 +56,8 @@ class Player {
 
   //jump control===================
   JumpPhase jump_phase = JumpPhase::Up;
-  double jump_time = 0.0;
   double jump_button_last_state = 0;
+  double jump_time = 0.0;
   double fall_time = 0;
 
   // Methods======
@@ -69,34 +68,31 @@ class Player {
   void draw_head(double x, double y, double z_index, std::array<double, 3> color) const;
   void draw_arm(double x, double y, double theta, double z_index, std::array<double, 3> color) const;
   void draw_leg(double x, double y, double theta1, double theta2, double z_index, std::array<double, 3> color) const;
-  
-  // TODO (maybe) colision control is outside
-  // void check_colision(double cx, std::vector<svg_tools::Rect> rectangles, std::string direction) const;
 
+  //====
   public:
     Player(){}
     void setup(const svg_tools::Circ &circle);
     void draw() const;
+    
+    // walk control
     void walk(double time_diff);
     void reset_legs_position();
-    int jump(double time_diff, int button_state, bool collide);
+
+    // fall control
     int fall(double time_diff, bool collide);
     
-    void set_fall_time(); // unusable
-    void set_jump_phase_to_up();
-    void set_jump_phase_to_down();
-
-    double get_cx();
-    double get_cy();
-    double get_width();
-    double get_height();
+    // jump control
+    int jump(double time_diff, int button_state, bool collide);
     JumpPhase get_jump_phase();
+
+    // Hitbox
     double get_left_edge();
     double get_right_edge();
     double get_top_edge();
     double get_bottom_edge();
+    
     double get_velocity();
-
 };  
 
 #endif

@@ -35,18 +35,16 @@ void mouseClick(int button, int state, int x, int y);
 
 // game_tools
 bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMoveDirection direction);
-bool is_player_colliding_horizontally(Player player, Arena arena, HorizontalMoveDirection direction, double timeDiff);
-bool is_player_into_arena_vertically(Player player, Arena arena);
-bool is_player_colliding_vertically(Player player, Arena arena, double timeDiff);
+bool walking_collision(Player player, Arena arena, HorizontalMoveDirection direction, double timeDiff);
+bool jumping_collision(Player player, Arena arena, double timeDiff);
 bool falling_collision(Player player, Arena arena, double timeDiff);
-
 
 //svg data===================================
 std::vector<svg_tools::Rect> rectangles = {};
 std::vector<svg_tools::Circ> circles = {};
 
+// game components
 Arena ring;
-
 Player self;
 std::vector<Player> enemies = {};
 
@@ -206,22 +204,17 @@ void idle(void){
   timeDifference = currentTime - previousTime;
   previousTime = currentTime;
 
-  
-  // The horizontal colision check will happen here, not into player class
-  // the player class will provider getters
-
-
   // Horizontal left motion
   if(key_status['a']) {
     // Checking arena limits
     if(is_player_into_arena_horizontally(self, ring, HorizontalMoveDirection::Left)) {
       // Checking collision against obstacles
-      if(!is_player_colliding_horizontally(self, ring, HorizontalMoveDirection::Left, timeDifference)) {
-        
+      if(!walking_collision(self, ring, HorizontalMoveDirection::Left, timeDifference)) {
+        // Walking
         self.walk(-timeDifference);
-        
+        // Updating camera position
         glMatrixMode(GL_PROJECTION);             
-          glTranslated((timeDifference* 0.05), 0, 0);
+          glTranslated((timeDifference* self.get_velocity()), 0, 0);
         glMatrixMode(GL_MODELVIEW);
       }
     }
@@ -232,17 +225,15 @@ void idle(void){
     // Checking arena limits
     if(is_player_into_arena_horizontally(self, ring, HorizontalMoveDirection::Right)) {
       // Checking collision against obstacles
-      if(!is_player_colliding_horizontally(self, ring, HorizontalMoveDirection::Right, timeDifference)) {
+      if(!walking_collision(self, ring, HorizontalMoveDirection::Right, timeDifference)) {
         
+        // Walking
         self.walk(timeDifference);
         
         glMatrixMode(GL_PROJECTION);             
-          glTranslated(-(timeDifference*0.05), 0, 0);
+          glTranslated(-(timeDifference*self.get_velocity()), 0, 0);
         glMatrixMode(GL_MODELVIEW);
 
-
-        //debug
-        // std::cout << (timeDifference * 0.05) << std::endl;
       }
     }
   }
@@ -250,54 +241,27 @@ void idle(void){
 
   //Gravity physics
   if(jump_state == JumpState::NotJumping) {
-    
-    // self.set_jump_phase_to_down();
-
     if(self.fall(
-      timeDifference, 
-      falling_collision(self, ring, timeDifference)  
+        timeDifference, 
+        falling_collision(self, ring, timeDifference)  
       )
     ) {
       fall_state = FallState::Falling;
     } else {
       fall_state = FallState::NotFalling;
     }
-
-    // self.reset_legs_position();
-    
-    // if(is_player_into_arena_vertically(self, ring)){
-
-      // if(!is_player_colliding_vertically(self, ring, timeDifference)){
-      //   self.fall(timeDifference);
-      // } else {
-      //   self.set_fall_time();
-      // }
-
-    // }
-    // self.fall(
-    //   ring.get_y() + ring.get_height(), 
-    //   timeDifference,
-    //   is_player_colliding_vertically(self, ring, timeDifference)   
-    // );
   }
 
 
   // Jump
   if(jump_state == JumpState::Jumping){
-    // Legs dont move when player is jumping
-    self.reset_legs_position(); 
-    
-    // Checking if player is into arena
-    if(is_player_into_arena_vertically(self, ring)) {
-
-      // If jump() returns 0, jump stops
-      if(!self.jump(
-          timeDifference, 
-          key_status[MOUSE_RIGHT],
-          is_player_colliding_vertically(self, ring, timeDifference)) // Checking collision
-        ) {
-        jump_state = JumpState::NotJumping;
-      }
+    // If jump() returns 0, jump finished
+    if(!self.jump(
+        timeDifference, 
+        key_status[MOUSE_RIGHT],
+        jumping_collision(self, ring, timeDifference)) // Checking collision
+      ) {
+      jump_state = JumpState::NotJumping;
     }
   }
 
@@ -312,9 +276,6 @@ void mouseClick(int button, int state, int x, int y) {
     // The jump key can be activated only when the player is not jumping
     if(jump_state == JumpState::NotJumping and fall_state == FallState::NotFalling){
       jump_state = JumpState::Jumping;
-
-      //void set_jump_phase_to_up(); // VERIFY
-      
       key_status[MOUSE_RIGHT] = 1;
     }
     return;
@@ -325,41 +286,32 @@ void mouseClick(int button, int state, int x, int y) {
   }
 }
 
+
 //=============================================================================
 // TODO 
-// put direction into player attributes
 bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMoveDirection direction)
 {
   if(direction == HorizontalMoveDirection::Left) {
-    return ((player.get_cx() - (player.get_width()/2)) >= arena.get_x()); 
+    return (player.get_left_edge() >= arena.get_x()); 
   }
   // Right
-  return ((player.get_cx() + (player.get_width()/2)) <= (arena.get_x() + arena.get_width()));
-}
-
-//=============================================================
-bool is_player_into_arena_vertically(Player player, Arena arena)
-{
-  // if(player.get_jump_phase() == JumpPhase::Up) {
-  //   return ((player.get_cy() - (player.get_height()/2)) >= arena.get_y());
-  // }
-  return 
-    ((player.get_cy() + (player.get_height()/2)) <= (arena.get_y() + arena.get_height())) &&
-    ((player.get_cy() - (player.get_height()/2)) >= arena.get_y());
+  return (player.get_right_edge() <= (arena.get_x() + arena.get_width()));
 }
 
 
-//===============================================================================
-bool is_player_colliding_horizontally(Player player, Arena arena,  HorizontalMoveDirection direction, double timeDiff) {
+//=======================================================================================================
+// TODO - Create arena hitbox functions
+//=======================================
+bool walking_collision(Player player, Arena arena,  HorizontalMoveDirection direction, double timeDiff) {
   
   double vertical_offset = timeDiff * player.get_velocity() + 0.1;
   
   if(direction == HorizontalMoveDirection::Right) {
     for(const svg_tools::Rect& r: arena.get_obstacles()) {
       if(
-        // by with 
-        (player.get_cx() + (player.get_width()/2) >= (r.x)) &&  
-        (player.get_cx() + (player.get_width()/2) <= (r.x + r.width)) &&
+        // by width 
+        (player.get_right_edge() >= (r.x)) &&  
+        (player.get_right_edge() <= (r.x + r.width)) &&
         // by height
         ( 
           // First case=======
@@ -367,16 +319,16 @@ bool is_player_colliding_horizontally(Player player, Arena arena,  HorizontalMov
           //  ---|_|
           //  |_|
           //=================== 
-          (((r.y + r.height - vertical_offset) >= (player.get_cy() - (player.get_height()/2))) && 
-           ((r.y) <= (player.get_cy() - (player.get_height()/2)))
+          (((r.y + r.height - vertical_offset) >= player.get_top_edge()) && 
+           ((r.y) <= player.get_top_edge())
           ) || 
           // Second case=======
           //  ___
           //  | |___
           //  ---|_|
           //===================
-          ( ((r.y + vertical_offset) <= (player.get_cy() + (player.get_height()/2))) &&
-            ((r.y + r.height) >= (player.get_cy() + (player.get_height()/2)))
+          ( ((r.y + vertical_offset) <= player.get_bottom_edge()) &&
+            ((r.y + r.height) >= player.get_bottom_edge())
           ) ||
           
           // with the first and second case, a third case is treated:
@@ -391,8 +343,8 @@ bool is_player_colliding_horizontally(Player player, Arena arena,  HorizontalMov
           //     |  |__|
           //     |_|
           //==================  
-          (((r.y) >= (player.get_cy() - (player.get_height()/2))) &&
-           (r.y + r.height) <= (player.get_cy() + (player.get_height()/2))
+          (((r.y) >= player.get_top_edge()) && 
+           (r.y + r.height) <= player.get_bottom_edge()
           )
         )
       ){
@@ -405,18 +357,18 @@ bool is_player_colliding_horizontally(Player player, Arena arena,  HorizontalMov
   // Left
   for(const svg_tools::Rect& r: arena.get_obstacles()) {
     if( 
-      (player.get_cx() - (player.get_width()/2) <= (r.x + r.width)) &&  
-      (player.get_cx() - (player.get_width()/2) >= (r.x)) &&
+      (player.get_left_edge() <= (r.x + r.width)) &&  
+      (player.get_left_edge() >= (r.x)) &&
       (
-        (((r.y + r.height - vertical_offset) >= (player.get_cy() - (player.get_height()/2))) && 
-         ((r.y) <= (player.get_cy() - (player.get_height()/2)))
+        (((r.y + r.height - vertical_offset) >= player.get_top_edge()) && 
+         ((r.y) <= player.get_top_edge())
         ) ||
         
-        ( ((r.y + vertical_offset) <= (player.get_cy() + (player.get_height()/2))) &&
-          ((r.y + r.height) >= (player.get_cy() + (player.get_height()/2)))
+        ( ((r.y + vertical_offset) <= player.get_bottom_edge()) &&
+          ((r.y + r.height) >= player.get_bottom_edge())
         ) ||
-        (((r.y) >= (player.get_cy() - (player.get_height()/2))) &&
-         (r.y + r.height) <= (player.get_cy() + (player.get_height()/2))
+        (((r.y) >= player.get_top_edge()) &&
+         (r.y + r.height) <= player.get_bottom_edge()
         )
       )
     ){
@@ -426,8 +378,9 @@ bool is_player_colliding_horizontally(Player player, Arena arena,  HorizontalMov
   return false;
 }
 
-//============================================================
-bool is_player_colliding_vertically(Player player, Arena arena, double timeDiff)
+
+//=============================================================================
+bool jumping_collision(Player player, Arena arena, double timeDiff)
 { 
   // This factor avoid player halting horizontally against the obstacles when it's jumping.
   //
@@ -472,6 +425,7 @@ bool is_player_colliding_vertically(Player player, Arena arena, double timeDiff)
   }
   return false;
 }
+
 
 //=================================================================
 bool falling_collision(Player player, Arena arena, double timeDiff)

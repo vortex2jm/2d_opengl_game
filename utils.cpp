@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <math.h>
 #include <iostream>
 
 namespace svg_tools {
@@ -45,5 +46,25 @@ namespace svg_tools {
 
       circ = circ->NextSiblingElement("circle");
     }
+  }
+}
+
+
+namespace matrix_tools {
+  void translatePoint2d(double point[2], double offSetX, double offSetY)
+  {
+    point[0] += offSetX;
+    point[1] += offSetY;
+  }
+
+  void rotatePoint2d(double point[2], double angle)
+  { 
+    double x = point[0];
+    double y = point[1];
+    
+    double angleRad = angle * M_PI / 180;
+
+    point[0] = (cos(angleRad) * x) + (-sin(angleRad) * y);
+    point[1] = (sin(angleRad) * x) + (cos(angleRad) * y);
   }
 }

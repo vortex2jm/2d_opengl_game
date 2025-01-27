@@ -46,7 +46,7 @@ void Player::draw_circle(double radius, double z_index, const std::array<double,
 void Player::draw_rect_by_center(double width, double height, double z_index, std::array<double, 3> color) const
 {
   glColor3d(color[0], color[1], color[2]);
-  // Anticlokwise
+  // counter-clokwise
   glBegin(GL_POLYGON);
     glVertex3f(-width/2, -height/2, z_index);   // top left corner
     glVertex3f(-width/2, height/2, z_index);    // bottom left corner
@@ -59,7 +59,7 @@ void Player::draw_rect_by_center(double width, double height, double z_index, st
 void Player::draw_rect_by_base(double width, double height, double z_index, std::array<double, 3> color) const
 {
   glColor3d(color[0], color[1], color[2]);
-  // Anticlokwise
+  // counter-clokwise
   glBegin(GL_POLYGON);
     glVertex3f(-width/2, 0, z_index);         // top left corner
     glVertex3f(-width/2, height, z_index);    // bottom left corner
@@ -118,7 +118,7 @@ void Player::draw() const
     Player::draw_head(
       0, -((Player::trunk_height/2) + (Player::head_diameter/2)), PLAYER_Z_INDEX, GREEN
     );
-    Player::draw_arm(0, 0, -90, PLAYER_Z_INDEX, YELLOW);
+    Player::draw_arm(0, 0, Player::arms_angle, PLAYER_Z_INDEX, YELLOW);
     Player::draw_leg(
       0, 
       Player::trunk_height/2, 
@@ -289,4 +289,26 @@ double Player::get_bottom_edge()
 double Player::get_velocity()
 {
   return Player::velocity;
+}
+
+//==================
+Shot *Player::shoot()
+{
+  // Tip of the arm
+  double arm_tip[2] = { 0, Player::arms_height };
+  matrix_tools::rotatePoint2d(arm_tip, Player::arms_angle);
+  matrix_tools::translatePoint2d(arm_tip, 0, 0);
+  matrix_tools::translatePoint2d(arm_tip, Player::cx, Player::cy);
+
+  // arms joint
+  double arm_joint[2] = { 0, 0 };
+  matrix_tools::rotatePoint2d(arm_joint, Player::arms_angle);
+  matrix_tools::translatePoint2d(arm_joint, 0, 0);
+  matrix_tools::translatePoint2d(arm_joint, Player::cx, Player::cy);
+  
+  double direction_vector[2] = { arm_tip[0] - arm_joint[0], arm_tip[1] - arm_joint[1] };
+  double direction_vector_norm = sqrt(pow(direction_vector[0], 2) + pow(direction_vector[1], 2));
+  double normalized_vector[2] = { (direction_vector[0]/direction_vector_norm), (direction_vector[1]/direction_vector_norm) };
+
+  return new Shot(arm_tip, normalized_vector);
 }

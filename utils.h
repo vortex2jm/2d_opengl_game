@@ -53,4 +53,10 @@ namespace svg_tools {
   void readSvg(char * file, std::vector<Rect> &r, std::vector<Circ> &c);
 }
 
+
+namespace matrix_tools {
+  void translatePoint2d(double point[2], double offSetX, double offSetY);
+  void rotatePoint2d(double point[2], double angle);
+}
+
 #endif

@@ -6,6 +6,7 @@
 #include <array>
 
 #include "utils.h"
+#include "shot.h"
 
 // Size propotions
 #define HEAD_PROP   0.30
@@ -50,6 +51,7 @@ class Player {
   //arms===================
   double arms_width = 0;
   double arms_height = 0;
+  double arms_angle = -90;
 
   //trunk===============
   double trunk_width = 0;
@@ -97,6 +99,9 @@ class Player {
     double get_bottom_edge();
     
     double get_velocity();
+
+    // external items
+    Shot * shoot();
 };  
 
 #endif

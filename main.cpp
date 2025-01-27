@@ -5,12 +5,15 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <list>
 
 #include "tinyxml2.h"
 #include "player.h"
 #include "utils.h"
 #include "arena.h"
+#include "shot.h"
 
+#define MOUSE_LEFT 254
 #define MOUSE_RIGHT 255
 #define GRAVITY 28
 
@@ -51,7 +54,8 @@ std::vector<svg_tools::Circ> circles = {};
 // game components
 Arena ring;
 Player self;
-std::vector<Player> enemies = {};
+std::list<Shot*> shots;
+std::vector<Player> enemies;
 
 
 //=============================//
@@ -146,6 +150,9 @@ void renderScene(void)
   self.draw();
   for(const Player &p: enemies){
     p.draw();
+  }
+  for(Shot * shot: shots) {
+    shot->draw();
   }
 
   // Processing new frame
@@ -268,6 +275,24 @@ void idle(void){
     }
   }
 
+  // Shot=====================
+  if(key_status[MOUSE_LEFT]) {
+    // std::cout << "idle shot" << std::endl;
+    shots.push_back(self.shoot());
+  }
+
+
+  for (auto shot = shots.begin(); shot != shots.end();) {
+    if(*shot) {
+        (*shot)->move(timeDifference); 
+    }
+    if (not (*shot)->is_valid()) {
+        delete (*shot);
+        shot = shots.erase(shot);
+    } else {
+     ++shot;
+    }
+  }
 
   glutPostRedisplay();
 }
@@ -287,8 +312,19 @@ void mouseClick(int button, int state, int x, int y) {
 
   if(button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
     key_status[MOUSE_RIGHT] = 0;  // it's necessary to compute when mouse button is pressed to keep the jump up
+    return;
+  }
+
+  if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+    key_status[MOUSE_LEFT] = 1;
+    return;
+  }
+
+  if(button == GLUT_LEFT_BUTTON && state == GLUT_UP){
+    key_status[MOUSE_LEFT] = 0;
   }
 }
+
 
 //===============================================================================
 void set_camera(double time, double velocity, HorizontalMoveDirection direction)

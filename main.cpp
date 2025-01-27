@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <random>
 
 #include "tinyxml2.h"
 #include "player.h"
@@ -17,6 +18,7 @@
 #define MOUSE_LEFT 254
 #define MOUSE_RIGHT 255
 #define GRAVITY 28
+#define SHOT_INTERVAL 500 // ms
 
 // Window dimensions
 const int Width = 500;
@@ -28,6 +30,9 @@ int key_status[256] = {0};
 // Jump controls
 JumpState jump_state = JumpState::NotJumping;
 FallState fall_state = FallState::NotFalling;
+
+// enemy controls
+double shot_timer = 0;
 
 // Callback declarations
 void init(void);
@@ -346,6 +351,44 @@ void idle(void){
   }
 
 
+  // Enemies motion=====
+  for(Player &enemy: enemies){
+
+    // enemies  always aim to self player
+    double self_distance_x = self.get_cx() - enemy.get_cx();
+    double self_distance_y = self.get_cy() - enemy.get_cy();
+    double rad = atan2(self_distance_y, abs(self_distance_x));
+    double deg = rad * 180.0/M_PI;
+    enemy.set_arm_angle(deg);
+
+    // if(shot_timer >= 1000){
+    //   // std::cout << "shoot" << std::endl;
+    //   shots.push_back(enemy.shoot());
+    //   shot_timer = 0.0;
+    // }
+
+  }
+
+
+  // Choosing random enemy to shot
+  if(!enemies.empty() and shot_timer >= SHOT_INTERVAL){
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, enemies.size() - 1);
+    int random_index = distrib(gen);
+
+    auto enemy = enemies.begin(); // Inicializa o iterador
+    std::advance(enemy, random_index); 
+
+    if(enemy != enemies.end()){
+      shots.push_back((*enemy).shoot());
+    }
+
+    shot_timer = 0.0;
+  }
+
+  // Updating timer
+  shot_timer += timeDifference;
   glutPostRedisplay();
 }
 

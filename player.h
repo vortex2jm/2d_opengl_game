@@ -118,6 +118,7 @@ class Player {
     
     // external items
     Shot * shoot();
-};  
+
+};
 
 #endif

@@ -320,6 +320,26 @@ void idle(void){
 
     // Prevent seg fault
     if(is_shot_deleted) continue;
+    
+
+    // Collision against self player
+    if(
+      shot_x > self.get_left_edge() && 
+      shot_x < self.get_right_edge() &&
+      shot_y > self.get_top_edge() &&
+      shot_y < self.get_bottom_edge()  
+    ){
+      delete (*shot);
+      shot = shots.erase(shot);
+      is_shot_deleted = true;
+      exit(0); //GAME OVER====================================GAME OVER
+      break;
+    } 
+
+    // Prevent seg fault
+    if(is_shot_deleted) continue;
+
+
 
     // Checking collision against obstacles
     for(const svg_tools::Rect& r: ring.get_obstacles()){
@@ -361,11 +381,7 @@ void idle(void){
     double deg = rad * 180.0/M_PI;
     enemy.set_arm_angle(deg);
 
-    // if(shot_timer >= 1000){
-    //   // std::cout << "shoot" << std::endl;
-    //   shots.push_back(enemy.shoot());
-    //   shot_timer = 0.0;
-    // }
+    
 
   }
 

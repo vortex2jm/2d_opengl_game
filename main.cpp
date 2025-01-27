@@ -124,8 +124,10 @@ void init(void)
   
   // projection limits must to be proportional with the window aspect ratio
   glOrtho(
-    limits["left"],     // left edge
-    limits["right"],    // right edge
+    self.get_cx() - (ring.get_height()/2), //left edge
+    // limits["left"],     // left edge
+    // limits["right"],    // right edge
+    self.get_cx() + (ring.get_height()/2), //right edge
     limits["bottom"],   // bottom edge
     limits["top"],      // top edge
     -100,               // “near” plane

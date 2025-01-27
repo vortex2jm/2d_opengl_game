@@ -153,6 +153,8 @@ void Player::walk(double time_diff, HorizontalMoveDirection direction)
     displacement *= -1;
   }
 
+  double phase = (direction == HorizontalMoveDirection::Left) ? -1.0 : 1.0;
+
   // Translating player
   Player::cx += displacement;
   
@@ -165,11 +167,11 @@ void Player::walk(double time_diff, HorizontalMoveDirection direction)
 
   //Calculating periodic functions based on each leg parameter================
   // Leg 1
-  double upper_legs_motion_angle1 = 15 * sin(k*Player::x_variation_leg1);
-  double lower_legs_motion_angle1 = 25 * (sin(k*Player::x_variation_leg1) + 1);
+  double upper_legs_motion_angle1 = phase * 15 * sin(k*Player::x_variation_leg1);
+  double lower_legs_motion_angle1 = phase * 25 * (sin(k*Player::x_variation_leg1) + 1);
   // Leg 2
-  double upper_legs_motion_angle2 = 15 * sin(k*Player::x_variation_leg2);
-  double lower_legs_motion_angle2 = 25 * (sin(k*Player::x_variation_leg2) + 1);
+  double upper_legs_motion_angle2 = phase * 15 * sin(k*Player::x_variation_leg2);
+  double lower_legs_motion_angle2 = phase * 25 * (sin(k*Player::x_variation_leg2) + 1);
   
   // Updating joints angles======================= 
   // Leg 1

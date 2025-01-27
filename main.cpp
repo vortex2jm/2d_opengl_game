@@ -1,6 +1,7 @@
 #include <GL/glut.h>
 #include <GL/glu.h>
 #include <GL/gl.h>
+#include <math.h>
 
 #include <iostream>
 #include <string>
@@ -18,8 +19,8 @@
 #define GRAVITY 28
 
 // Window dimensions
-const GLint Width = 700;
-const GLint Height = 700;
+const int Width = 500;
+const int Height = 500;
 
 // keyboard
 int key_status[256] = {0};
@@ -36,6 +37,7 @@ void renderScene(void);
 void keyUp(unsigned char key, int x, int y);
 void keyPress(unsigned char key, int x, int y);
 void mouseClick(int button, int state, int x, int y);
+void mouseMotion(int x, int y);
 
 // utilities
 void set_camera(double time, double velocity, HorizontalMoveDirection direction);
@@ -96,8 +98,9 @@ int main(int argc, char *argv[])
   // Defining callbacks.
   glutIdleFunc(idle);
   glutKeyboardUpFunc(keyUp);
-  glutMouseFunc(mouseClick);
   glutKeyboardFunc(keyPress);
+  glutMouseFunc(mouseClick);
+  glutPassiveMotionFunc(mouseMotion);
   glutDisplayFunc(renderScene);
 
   // Setup
@@ -312,6 +315,35 @@ void mouseClick(int button, int state, int x, int y) {
     shots.push_back(self.shoot());
     return;
   }
+}
+
+//============================
+// TODO - adjust arms angle
+void mouseMotion(int x, int y)
+{
+  printf("Mouse Position: (%d, %d)\n", x, y);
+
+  // Mapping mouse position into virtual world
+  // Getting displacement proportion within window and
+  // transposing this proportion to virtual world
+  double mapped_mouse_pos_y = (ring.get_height() * ((double)y/(double)Height)) + ring.get_y(); 
+  double mapped_mouse_pos_x = (ring.get_height() * ((double)x/(double)Width)) + ring.get_x();
+  
+  // double mapped_mouse_displacement_y = mapped_mouse_pos_y - (ring.get_y() + (ring.get_height()/2));
+  double mapped_mouse_displacement_y = mapped_mouse_pos_y - self.get_cy();
+  double mapped_mouse_displacement_x = mapped_mouse_pos_x - self.get_cx();
+
+  //debug
+  std::cout << mapped_mouse_displacement_y << std::endl;
+  std::cout<< mapped_mouse_displacement_x << std::endl;
+  
+  double angle_gain = 0.9;
+
+  // double angle = atan(mapped_mouse_displacement_y/mapped_mouse_displacement_x);
+  // std::cout << angle << std::endl;
+  double angle =atan2(mapped_mouse_displacement_y, mapped_mouse_displacement_x);
+
+  self.set_arm_angle(angle * angle_gain);
 }
 
 

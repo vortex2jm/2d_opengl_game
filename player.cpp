@@ -291,6 +291,33 @@ double Player::get_velocity()
   return Player::velocity;
 }
 
+double Player::get_cy()
+{
+  return Player::cy;
+}
+
+double Player::get_cx()
+{
+  return Player::cx;
+}
+
+//Setters
+void Player::set_arm_angle(double angle)
+{
+  Player::arms_angle += angle;
+
+  if(Player::arms_angle <= -135){
+    Player::arms_angle = -135;
+    return;
+  }
+
+  if(Player::arms_angle >= -45){
+    Player::arms_angle = -45;
+    return;
+  }
+}
+
+
 //==================
 Shot *Player::shoot()
 {

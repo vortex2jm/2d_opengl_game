@@ -10,7 +10,7 @@ class Shot {
     double x_initial; 
     double y_initial; 
     // double gDirectionAng;
-    double velocity = 0.08;
+    double velocity = 0.1;
     double direction_vector[2];
     double radius = 1;
 

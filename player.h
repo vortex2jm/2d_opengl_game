@@ -100,6 +100,9 @@ class Player {
     
     double get_velocity();
 
+    double get_cy();
+    double get_cx();
+    void set_arm_angle(double angle);
     // external items
     Shot * shoot();
 };  

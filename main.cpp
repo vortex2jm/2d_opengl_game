@@ -20,6 +20,16 @@
 #define GRAVITY 28
 #define SHOT_INTERVAL 1000 // ms
 #define ENEMIES_VELOCITY 0.02
+#define PRINT_BASE_X -165
+#define PRINT_BASE_Y 145
+
+
+// end game control
+static char game_over_message[1000] = "GAME OVER\n\0";
+static char win_message[1000] = "YOU WON\n\0";
+bool game_over = false;
+bool win = false;
+char *svg;
 
 // Window dimensions
 const int Width = 500;
@@ -37,6 +47,7 @@ double shot_timer = 0.0;
 double enemy_change_walk_timer = 0.0;
 
 // Callback declarations
+void setup(char * file);
 void init(void);
 void idle(void);
 void resetKeyStatus();
@@ -45,9 +56,11 @@ void keyUp(unsigned char key, int x, int y);
 void keyPress(unsigned char key, int x, int y);
 void mouseClick(int button, int state, int x, int y);
 void mouseMotion(int x, int y);
+void print_message(double x, double y, char * message);
 
 // utilities
 void set_camera(double time, double velocity, HorizontalMoveDirection direction);
+void reset_camera(double displacement);
 double get_time_diff();
 
 // game_tools
@@ -80,21 +93,8 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  // Reading .svg and setting up ring==============
-  svg_tools::readSvg(argv[1], rectangles, circles);  //vectors passed by referece   
-  ring.setup(rectangles);
-  
-  // Setting up players===================
-  for(const svg_tools::Circ &c: circles){
-    if(c.color == "green"){
-      self.setup(c);
-      continue;
-    }
-    Player p;
-    p.setup(c);
-    p.set_velocity(ENEMIES_VELOCITY);
-    enemies.push_back(p); // copying instance into global vector
-  }
+  svg = argv[1];
+  setup(svg);
 
   // Setting up GLUT===================
   glutInit(&argc, argv);
@@ -120,6 +120,35 @@ int main(int argc, char *argv[])
   return 0;
 }
 
+
+//===========
+void setup(char * file){
+  // Reading .svg and setting up ring==============
+  
+  // Cleaning all data structures
+  rectangles.clear();
+  circles.clear();
+  enemies.clear();
+  shots.clear();
+
+  // Start reading
+  svg_tools::readSvg(file, rectangles, circles);  //vectors passed by referece   
+  ring.setup(rectangles);
+  
+  // Setting up players===================
+  for(const svg_tools::Circ &c: circles){
+    if(c.color == "green"){
+      self.setup(c);
+      continue;
+    }
+    Player p;
+    p.setup(c);
+    p.set_velocity(ENEMIES_VELOCITY);
+    enemies.push_back(p); // copying instance into global vector
+  }
+}
+
+
 //=============
 void init(void)
 {
@@ -140,6 +169,7 @@ void init(void)
     self.get_cx() + (ring.get_height()/2), //right edge
     limits["bottom"],   // bottom edge
     limits["top"],      // top edge
+    // -300, 300, -300, 300,
     -100,               // “near” plane
     100                 // “far” plane
   );               
@@ -159,7 +189,19 @@ void renderScene(void)
 {
   // Erasing buffer
   glClear(GL_COLOR_BUFFER_BIT);
-  
+
+  if(game_over){
+    print_message(PRINT_BASE_X, PRINT_BASE_Y, game_over_message);
+    glutSwapBuffers(); 
+    return;
+  }
+
+  if(win) {
+    print_message(PRINT_BASE_X, PRINT_BASE_Y, win_message);
+    glutSwapBuffers(); 
+    return;
+  }
+
   // Drawing elements
   ring.draw();
   self.draw();
@@ -211,8 +253,18 @@ void keyPress(unsigned char key, int x, int y){
     key_status['d'] = 1;
     break;
 
+  case 'r':
+  case 'R':
+    if(game_over){
+      setup(svg);
+      game_over = false;
+      win = false;
+    }
+    break;
+
   case 0x1b:  // ESC
     exit(0);
+    break;
 
   default:
     break;
@@ -337,7 +389,8 @@ void idle(void){
       delete (*shot);
       shot = shots.erase(shot);
       is_shot_deleted = true;
-      exit(0); //GAME OVER====================================GAME OVER
+      game_over = true; //GAME OVER====================================GAME OVER
+      reset_camera((self.get_cx() - self.get_initial_cx()));
       break;
     } 
 
@@ -421,6 +474,12 @@ void idle(void){
 
     shot_timer = 0.0;
   }
+
+  // game ends
+  if(self.get_right_edge() >= (ring.get_x() + ring.get_width())){
+    win = true;  
+    reset_camera((self.get_cx() - self.get_initial_cx()));
+  } 
 
   // Updating timer
   shot_timer += timeDifference;
@@ -577,6 +636,13 @@ void set_camera(double time, double velocity, HorizontalMoveDirection direction)
     displacement *= -1;
   }
 
+  glMatrixMode(GL_PROJECTION);             
+    glTranslated(displacement, 0, 0);
+  glMatrixMode(GL_MODELVIEW);
+}
+
+//======================================
+void reset_camera(double displacement) {
   glMatrixMode(GL_PROJECTION);             
     glTranslated(displacement, 0, 0);
   glMatrixMode(GL_MODELVIEW);
@@ -869,4 +935,19 @@ bool falling_collision(Player &player, Arena arena, std::list<Player> enemies, d
   }  
 
   return false;
+}
+
+void print_message(double x, double y, char * message)
+{
+  void * font = GLUT_BITMAP_9_BY_15;
+  glColor3f(1.0, 1.0, 1.0);
+  glRasterPos2f(x, y);
+
+  char *tmpStr;
+  tmpStr = message;
+  
+  while( *tmpStr ){
+    glutBitmapCharacter(font, *tmpStr);
+    tmpStr++;
+  }
 }

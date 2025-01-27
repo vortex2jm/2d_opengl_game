@@ -71,6 +71,7 @@ class Player {
 
   // walk control
   HorizontalMoveDirection walk_direction = HorizontalMoveDirection::Right;
+  HorizontalMoveDirection last_walk_direction = HorizontalMoveDirection::Right;
 
   // Methods======
   void draw_circle(double radius, double z_index, std::array<double, 3> color) const;

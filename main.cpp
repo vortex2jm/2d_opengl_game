@@ -56,6 +56,7 @@ bool walking_collision(Player &player, Arena arena, std::list<Player> enemies, H
 bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, double timeDiff);
 bool falling_collision(Player &player, Arena arena, std::list<Player> enemies, double timeDiff);
 bool platform_end_detected(Player player, Arena arena);
+bool players_collision(Player p1, Player p2); 
 
 //svg data===================================
 std::vector<svg_tools::Rect> rectangles = {};
@@ -395,9 +396,12 @@ void idle(void){
     if(platform_end_detected(enemy, ring)){
       enemy.revert_walk_direction();
     }
+    
     HorizontalMoveDirection enemy_direcition = enemy.get_walk_direction();
-    enemy.walk(timeDifference, enemy_direcition);
-
+    
+    if(!players_collision(self, enemy)) {
+      enemy.walk(timeDifference, enemy_direcition);
+    }
   }
 
 
@@ -421,6 +425,21 @@ void idle(void){
   // Updating timer
   shot_timer += timeDifference;
   glutPostRedisplay();
+}
+
+
+//============================================
+bool players_collision(Player p1, Player p2) {
+  if(
+    ((p1.get_right_edge() >= p2.get_left_edge() && p1.get_left_edge() <= p2.get_left_edge()) ||
+    (p1.get_left_edge() <= p2.get_right_edge() && p1.get_right_edge() >= p2.get_right_edge()))
+    &&
+    ((p1.get_bottom_edge() >= p2.get_top_edge() && p1.get_top_edge() <= p2.get_top_edge()) ||
+    (p1.get_top_edge() <= p2.get_bottom_edge() && p1.get_bottom_edge() >= p2.get_bottom_edge()))
+  ){
+    return true;
+  }
+  return false;
 }
 
 

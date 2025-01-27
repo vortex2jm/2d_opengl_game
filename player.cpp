@@ -277,22 +277,22 @@ JumpPhase Player::get_jump_phase()
   return Player::jump_phase;
 }
 
-double Player::get_left_edge()
+double Player::get_left_edge() const
 {
   return Player::cx - (Player::trunk_width/2);
 }
 
-double Player::get_right_edge()
+double Player::get_right_edge() const
 {
   return Player::cx + (Player::trunk_width/2);
 }
 
-double Player::get_top_edge()
+double Player::get_top_edge() const
 {
   return Player::cy - (Player::height/2);
 }
 
-double Player::get_bottom_edge()
+double Player::get_bottom_edge() const
 {
   return Player::cy + (Player::height/2);
 }

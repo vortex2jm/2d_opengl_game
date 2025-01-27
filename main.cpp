@@ -45,9 +45,9 @@ double get_time_diff();
 
 // game_tools
 bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMoveDirection direction);
-bool walking_collision(Player player, Arena arena, HorizontalMoveDirection direction, double timeDiff);
-bool jumping_collision(Player player, Arena arena, double timeDiff);
-bool falling_collision(Player player, Arena arena, double timeDiff);
+bool walking_collision(Player player, Arena arena, std::vector<Player> enemies, HorizontalMoveDirection direction, double timeDiff);
+bool jumping_collision(Player player, Arena arena, std::vector<Player> enemies, double timeDiff);
+bool falling_collision(Player player, Arena arena, std::vector<Player> enemies, double timeDiff);
 
 //svg data===================================
 std::vector<svg_tools::Rect> rectangles = {};
@@ -230,7 +230,7 @@ void idle(void){
     // Checking arena limits
     if(is_player_into_arena_horizontally(self, ring, HorizontalMoveDirection::Left)) {
       // Checking collision against obstacles
-      if(!walking_collision(self, ring, HorizontalMoveDirection::Left, timeDifference)) {
+      if(!walking_collision(self, ring, enemies,HorizontalMoveDirection::Left, timeDifference)) {
         // Walking
         self.walk(timeDifference, HorizontalMoveDirection::Left);
         set_camera(timeDifference, self.get_velocity(), HorizontalMoveDirection::Left);
@@ -243,7 +243,7 @@ void idle(void){
     // Checking arena limits
     if(is_player_into_arena_horizontally(self, ring, HorizontalMoveDirection::Right)) {
       // Checking collision against obstacles
-      if(!walking_collision(self, ring, HorizontalMoveDirection::Right, timeDifference)) {
+      if(!walking_collision(self, ring, enemies,HorizontalMoveDirection::Right, timeDifference)) {
         // Walking
         self.walk(timeDifference, HorizontalMoveDirection::Right);
         set_camera(timeDifference, self.get_velocity(), HorizontalMoveDirection::Right);
@@ -257,7 +257,7 @@ void idle(void){
     if(self.fall(
         timeDifference, 
         GRAVITY,
-        falling_collision(self, ring, timeDifference)  
+        falling_collision(self, ring, enemies, timeDifference)  
       )
     ) {
       fall_state = FallState::Falling;
@@ -274,12 +274,13 @@ void idle(void){
         timeDifference, 
         GRAVITY,
         key_status[MOUSE_RIGHT],
-        jumping_collision(self, ring, timeDifference))
+        jumping_collision(self, ring, enemies, timeDifference))
       ) {
       jump_state = JumpState::NotJumping;
     }
   }
 
+  // Checking valid shots
   for (auto shot = shots.begin(); shot != shots.end();) {
     if(*shot) {
         (*shot)->move(timeDifference); 
@@ -384,11 +385,14 @@ bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMov
 //=======================================================================================================
 // TODO - Create arena hitbox functions
 //=======================================
-bool walking_collision(Player player, Arena arena,  HorizontalMoveDirection direction, double timeDiff) {
+bool walking_collision(Player player, Arena arena, std::vector<Player> enemies, HorizontalMoveDirection direction, double timeDiff) {
   
   double vertical_offset = timeDiff * player.get_velocity() + 0.1;
   
+  // Right motion
   if(direction == HorizontalMoveDirection::Right) {
+
+    // Obstacles collision================================
     for(const svg_tools::Rect& r: arena.get_obstacles()) {
       if(
         // by width 
@@ -396,35 +400,14 @@ bool walking_collision(Player player, Arena arena,  HorizontalMoveDirection dire
         (player.get_right_edge() <= (r.x + r.width)) &&
         // by height
         ( 
-          // First case=======
-          //     ___
-          //  ---|_|
-          //  |_|
-          //=================== 
           (((r.y + r.height - vertical_offset) >= player.get_top_edge()) && 
            ((r.y) <= player.get_top_edge())
           ) || 
-          // Second case=======
-          //  ___
-          //  | |___
-          //  ---|_|
-          //===================
+
           ( ((r.y + vertical_offset) <= player.get_bottom_edge()) &&
             ((r.y + r.height) >= player.get_bottom_edge())
           ) ||
-          
-          // with the first and second case, a third case is treated:
-          //     ___  
-          //  ___| |
-          //  |_|  |
-          //     |_|
-          //==================
-          // Fourth case
-          //     ___  
-          //     | |____
-          //     |  |__|
-          //     |_|
-          //==================  
+  
           (((r.y) >= player.get_top_edge()) && 
            (r.y + r.height) <= player.get_bottom_edge()
           )
@@ -433,6 +416,32 @@ bool walking_collision(Player player, Arena arena,  HorizontalMoveDirection dire
         return true;
       }
     }
+
+    // Enemy collision====================
+    for(const Player &enemy: enemies) {
+      if(
+        // by width 
+        (player.get_right_edge() >= enemy.get_left_edge()) &&  
+        (player.get_right_edge() <= enemy.get_right_edge()) &&
+        // by height
+        ( 
+          (((enemy.get_bottom_edge() - vertical_offset) >= player.get_top_edge()) && 
+           (enemy.get_top_edge() <= player.get_top_edge())
+          ) || 
+
+          ( ((enemy.get_top_edge() + vertical_offset) <= player.get_bottom_edge()) &&
+            (enemy.get_bottom_edge() >= player.get_bottom_edge())
+          ) ||
+
+          ((enemy.get_top_edge() >= player.get_top_edge()) && 
+           enemy.get_bottom_edge() <= player.get_bottom_edge()
+          )
+        )
+      ){
+        return true;
+      }
+    }
+
     return false;
   }
 
@@ -457,12 +466,34 @@ bool walking_collision(Player player, Arena arena,  HorizontalMoveDirection dire
       return true;
     }
   }
+
+  for(const Player &enemy: enemies) {
+    if( 
+      (player.get_left_edge() <= enemy.get_right_edge()) &&  
+      (player.get_left_edge() >= enemy.get_left_edge()) &&
+      (
+        (((enemy.get_bottom_edge() - vertical_offset) >= player.get_top_edge()) && 
+         (enemy.get_top_edge() <= player.get_top_edge())
+        ) ||
+        
+        ( ((enemy.get_top_edge() + vertical_offset) <= player.get_bottom_edge()) &&
+          (enemy.get_bottom_edge() >= player.get_bottom_edge())
+        ) ||
+        ((enemy.get_top_edge() >= player.get_top_edge()) &&
+         enemy.get_bottom_edge() <= player.get_bottom_edge()
+        )
+      )
+    ){
+      return true;
+    }
+  }
+
   return false;
 }
 
 
 //=============================================================================
-bool jumping_collision(Player player, Arena arena, double timeDiff)
+bool jumping_collision(Player player, Arena arena, std::vector<Player> enemies, double timeDiff)
 { 
   // This factor avoid player halting horizontally against the obstacles when it's jumping.
   //
@@ -477,6 +508,8 @@ bool jumping_collision(Player player, Arena arena, double timeDiff)
   double horizontal_offset = timeDiff * player.get_velocity() + 0.1;
 
   if(player.get_jump_phase() == JumpPhase::Up) {
+    
+    // Obstacles collision==============================
     for(const svg_tools::Rect& r: arena.get_obstacles()) {
       if(
         (((player.get_top_edge() <= (r.y + r.height)) && (player.get_top_edge() >= r.y))  && 
@@ -490,6 +523,21 @@ bool jumping_collision(Player player, Arena arena, double timeDiff)
         return true;
       } 
     }
+
+    // Enemy coliision===============
+    for(const Player &enemy: enemies) {
+      if(
+        (((player.get_top_edge() <= enemy.get_bottom_edge()) && (player.get_top_edge() >= enemy.get_top_edge()))  && 
+        (
+          ((player.get_right_edge() >= enemy.get_left_edge() + horizontal_offset) && (player.get_left_edge() <= enemy.get_left_edge())) ||
+          ((player.get_left_edge() <= (enemy.get_right_edge() - horizontal_offset)) && (player.get_right_edge() >= enemy.get_right_edge())) ||
+          ((player.get_left_edge() >= enemy.get_left_edge()) && (player.get_right_edge() <= enemy.get_right_edge()))
+        ))
+      ){
+        return true;
+      } 
+    }
+
     return false;
   }
 
@@ -506,15 +554,30 @@ bool jumping_collision(Player player, Arena arena, double timeDiff)
       return true;
     } 
   }
+
+   for(const Player &enemy: enemies) {
+    if(
+      ((player.get_bottom_edge() >= enemy.get_top_edge()) && (player.get_bottom_edge() <= enemy.get_bottom_edge())) && 
+      (
+        ((player.get_right_edge() >= enemy.get_left_edge() + horizontal_offset) && (player.get_left_edge() <= enemy.get_left_edge())) ||
+        ((player.get_left_edge() <= (enemy.get_right_edge() - horizontal_offset)) && (player.get_right_edge() >= enemy.get_right_edge())) ||
+        ((player.get_left_edge() >= enemy.get_left_edge()) && (player.get_right_edge() <= enemy.get_right_edge()))
+      )
+    ){
+      return true;
+    } 
+   }
+
   return false;
 }
 
 
 //=================================================================
-bool falling_collision(Player player, Arena arena, double timeDiff)
+bool falling_collision(Player player, Arena arena, std::vector<Player> enemies, double timeDiff)
 {
   double horizontal_offset = timeDiff * player.get_velocity() + 0.1;
 
+  // obstacles collision
   for(const svg_tools::Rect& r: arena.get_obstacles()) {
     if(
       ((player.get_bottom_edge() >= (r.y)) && (player.get_bottom_edge() <= (r.y + r.height))) && 
@@ -527,5 +590,20 @@ bool falling_collision(Player player, Arena arena, double timeDiff)
       return true;
     } 
   }
+
+  // Enemy collision
+  for(const Player &enemy: enemies) {
+    if(
+    ((player.get_bottom_edge() >= enemy.get_top_edge()) && (player.get_bottom_edge() <= enemy.get_bottom_edge())) && 
+    (
+      ((player.get_right_edge() >= enemy.get_left_edge() + horizontal_offset) && (player.get_left_edge() <= enemy.get_left_edge())) ||
+      ((player.get_left_edge() <= (enemy.get_right_edge() - horizontal_offset)) && (player.get_right_edge() >= enemy.get_right_edge())) ||
+      ((player.get_left_edge() >= enemy.get_left_edge()) && (player.get_right_edge() <= enemy.get_right_edge()))
+    )
+    ){
+      return true;
+    } 
+  }  
+
   return false;
 }

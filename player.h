@@ -99,10 +99,10 @@ class Player {
     JumpPhase get_jump_phase();
 
     // Hitbox
-    double get_left_edge();
-    double get_right_edge();
-    double get_top_edge();
-    double get_bottom_edge();
+    double get_left_edge() const;
+    double get_right_edge() const;
+    double get_top_edge() const;
+    double get_bottom_edge() const;
     
     double get_velocity();
 

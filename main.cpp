@@ -18,7 +18,8 @@
 #define MOUSE_LEFT 254
 #define MOUSE_RIGHT 255
 #define GRAVITY 28
-#define SHOT_INTERVAL 500 // ms
+#define SHOT_INTERVAL 1000 // ms
+#define ENEMIES_VELOCITY 0.02
 
 // Window dimensions
 const int Width = 500;
@@ -32,7 +33,8 @@ JumpState jump_state = JumpState::NotJumping;
 FallState fall_state = FallState::NotFalling;
 
 // enemy controls
-double shot_timer = 0;
+double shot_timer = 0.0;
+double enemy_change_walk_timer = 0.0;
 
 // Callback declarations
 void init(void);
@@ -53,6 +55,7 @@ bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMov
 bool walking_collision(Player &player, Arena arena, std::list<Player> enemies, HorizontalMoveDirection direction, double timeDiff);
 bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, double timeDiff);
 bool falling_collision(Player &player, Arena arena, std::list<Player> enemies, double timeDiff);
+bool platform_end_detected(Player player, Arena arena);
 
 //svg data===================================
 std::vector<svg_tools::Rect> rectangles = {};
@@ -88,6 +91,7 @@ int main(int argc, char *argv[])
     }
     Player p;
     p.setup(c);
+    p.set_velocity(ENEMIES_VELOCITY);
     enemies.push_back(p); // copying instance into global vector
   }
 
@@ -381,7 +385,18 @@ void idle(void){
     double deg = rad * 180.0/M_PI;
     enemy.set_arm_angle(deg);
 
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, 1);
+
     
+    int random_index = distrib(gen);
+
+    if(platform_end_detected(enemy, ring)){
+      enemy.revert_walk_direction();
+    }
+    HorizontalMoveDirection enemy_direcition = enemy.get_walk_direction();
+    enemy.walk(timeDifference, enemy_direcition);
 
   }
 
@@ -406,6 +421,83 @@ void idle(void){
   // Updating timer
   shot_timer += timeDifference;
   glutPostRedisplay();
+}
+
+
+//=====================================================
+bool platform_end_detected(Player player, Arena arena){
+
+  double floor_offset = 1;
+
+  for(const svg_tools::Rect& r: arena.get_obstacles()) {
+    
+    if(abs(player.get_bottom_edge() - r.y) <= floor_offset){
+      if(
+        (player.get_left_edge() <= r.x && player.get_right_edge() >= r.x) ||
+        (player.get_right_edge() >= (r.x + r.width) && player.get_left_edge() <= (r.x + r.width)) ||
+        (player.get_left_edge() <= arena.get_x()) ||
+        (player.get_right_edge() >= (arena.get_x() + arena.get_width()))
+      ){
+        return true;
+      }
+    }
+
+    else if(player.get_walk_direction() == HorizontalMoveDirection::Left) {
+
+      //arena
+      if(player.get_left_edge() <= arena.get_x()) return true;
+
+      // obstacles
+      if( 
+      (player.get_left_edge() <= (r.x + r.width)) &&  
+      (player.get_left_edge() >= (r.x)) &&
+      (
+        (((r.y + r.height) >= player.get_top_edge()) && 
+         ((r.y) <= player.get_top_edge())
+        ) ||
+        
+        ( ((r.y) <= player.get_bottom_edge()) &&
+          ((r.y + r.height) >= player.get_bottom_edge())
+        ) ||
+        (((r.y) >= player.get_top_edge()) &&
+         (r.y + r.height) <= player.get_bottom_edge()
+        )
+      )
+      ){
+        return true;
+      }
+    }
+
+    else {
+  
+      //arena
+      if(player.get_right_edge() >= (arena.get_x() + arena.get_width())) return true;
+
+      // obstacles
+      if(
+        // by width 
+        (player.get_right_edge() >= (r.x)) &&  
+        (player.get_right_edge() <= (r.x + r.width)) &&
+        // by height
+        ( 
+          (((r.y + r.height) >= player.get_top_edge()) && 
+           ((r.y) <= player.get_top_edge())
+          ) || 
+
+          ( ((r.y) <= player.get_bottom_edge()) &&
+            ((r.y + r.height) >= player.get_bottom_edge())
+          ) ||
+  
+          (((r.y) >= player.get_top_edge()) && 
+           (r.y + r.height) <= player.get_bottom_edge()
+          )
+        )
+      ){
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 

@@ -110,11 +110,14 @@ class Player {
     double get_cy();
     double get_cx();
     double get_initial_cx();
-    
+    HorizontalMoveDirection get_walk_direction();
+
     void set_arm_angle(double angle);
     void set_arm_angle_base(double angle);
     void set_cy(double cy);
     void set_cx(double cx);
+    void revert_walk_direction();
+    void set_velocity(double velocity);
     
     // external items
     Shot * shoot();

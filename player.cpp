@@ -316,6 +316,11 @@ double Player::get_initial_cx()
   return Player::initial_cx;
 }
 
+HorizontalMoveDirection Player::get_walk_direction()
+{
+    return Player::walk_direction;
+}
+
 //Setters
 void Player::set_arm_angle(double angle)
 {
@@ -362,6 +367,20 @@ void Player::set_cy(double cy)
 void Player::set_cx(double cx)
 {
   Player::cx = cx;
+}
+
+void Player::revert_walk_direction()
+{
+  if(walk_direction == HorizontalMoveDirection::Right){
+    walk_direction = HorizontalMoveDirection::Left;
+    return;
+  }
+  walk_direction = HorizontalMoveDirection::Right;
+}
+
+void Player::set_velocity(double velocity)
+{
+  Player::velocity = velocity;
 }
 
 //==================

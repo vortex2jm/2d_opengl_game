@@ -45,9 +45,9 @@ double get_time_diff();
 
 // game_tools
 bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMoveDirection direction);
-bool walking_collision(Player &player, Arena arena, std::vector<Player> enemies, HorizontalMoveDirection direction, double timeDiff);
-bool jumping_collision(Player &player, Arena arena, std::vector<Player> enemies, double timeDiff);
-bool falling_collision(Player &player, Arena arena, std::vector<Player> enemies, double timeDiff);
+bool walking_collision(Player &player, Arena arena, std::list<Player> enemies, HorizontalMoveDirection direction, double timeDiff);
+bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, double timeDiff);
+bool falling_collision(Player &player, Arena arena, std::list<Player> enemies, double timeDiff);
 
 //svg data===================================
 std::vector<svg_tools::Rect> rectangles = {};
@@ -57,7 +57,7 @@ std::vector<svg_tools::Circ> circles = {};
 Arena ring;
 Player self;
 std::list<Shot*> shots;
-std::vector<Player> enemies;
+std::list<Player> enemies;
 
 
 //=============================//
@@ -280,18 +280,71 @@ void idle(void){
     }
   }
 
-  // Checking valid shots
+
+  // Treating shots=====================================
   for (auto shot = shots.begin(); shot != shots.end();) {
+    bool is_shot_deleted = false;
+
+    // Motion update
     if(*shot) {
         (*shot)->move(timeDifference); 
     }
+
+    // Getting position
+    double shot_x, shot_y;
+    (*shot)->get_pos(shot_x, shot_y);
+    
+    // Checking collision against enemies
+    for(auto enemy = enemies.begin(); enemy != enemies.end();) {  
+      if(
+        shot_x > (*enemy).get_left_edge() && 
+        shot_x < (*enemy).get_right_edge() &&
+        shot_y > (*enemy).get_top_edge() &&
+        shot_y < (*enemy).get_bottom_edge()  
+      ){
+        enemy = enemies.erase(enemy);
+        delete (*shot);
+        shot = shots.erase(shot);
+        is_shot_deleted = true;
+        break;
+      } 
+      else {
+        ++ enemy;
+      }
+    }
+
+    // Prevent seg fault
+    if(is_shot_deleted) continue;
+
+    // Checking collision against obstacles
+    for(const svg_tools::Rect& r: ring.get_obstacles()){
+      if(
+        shot_x > r.x && 
+        shot_x < (r.x + r.width) &&
+        shot_y > r.y &&
+        shot_y < (r.y + r.height)
+      ){
+        delete (*shot);
+        shot = shots.erase(shot);
+        is_shot_deleted = true;
+        break;
+      }
+    }
+
+    // Prevent seg fault
+    if(is_shot_deleted) continue;
+
+
+    // Shot lifecycle
     if (not (*shot)->is_valid()) {
         delete (*shot);
         shot = shots.erase(shot);
-    } else {
+    } 
+    else {
      ++shot;
     }
   }
+
 
   glutPostRedisplay();
 }
@@ -387,7 +440,7 @@ bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMov
 //=======================================================================================================
 // TODO - Create arena hitbox functions
 //=======================================
-bool walking_collision(Player &player, Arena arena, std::vector<Player> enemies, HorizontalMoveDirection direction, double timeDiff) {
+bool walking_collision(Player &player, Arena arena, std::list<Player> enemies, HorizontalMoveDirection direction, double timeDiff) {
   
   double vertical_offset = timeDiff * player.get_velocity() + 0.1;
   
@@ -511,7 +564,7 @@ bool walking_collision(Player &player, Arena arena, std::vector<Player> enemies,
 
 
 //=============================================================================
-bool jumping_collision(Player &player, Arena arena, std::vector<Player> enemies, double timeDiff)
+bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, double timeDiff)
 { 
   // This factor avoid player halting horizontally against the obstacles when it's jumping.
   //
@@ -604,7 +657,7 @@ bool jumping_collision(Player &player, Arena arena, std::vector<Player> enemies,
 
 
 //=================================================================
-bool falling_collision(Player &player, Arena arena, std::vector<Player> enemies, double timeDiff)
+bool falling_collision(Player &player, Arena arena, std::list<Player> enemies, double timeDiff)
 {
   double horizontal_offset = timeDiff * player.get_velocity() + 0.1;
 

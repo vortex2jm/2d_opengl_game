@@ -2,7 +2,7 @@
 #include <math.h>
 #include <iostream>
 
-#define DISTANCIA_MAX 500
+#define DISTANCIA_MAX 370
 
 Shot::Shot(double init_point[2], double direct_vec[2])
 {
@@ -53,7 +53,12 @@ void Shot::move(double timeDiff)
 
 bool Shot::is_valid()
 {
-  return !(Shot::x > DISTANCIA_MAX or Shot::y > DISTANCIA_MAX);
+  return !(
+    Shot::x > DISTANCIA_MAX or 
+    Shot::y > DISTANCIA_MAX or
+    Shot::x < -DISTANCIA_MAX or
+    Shot::y < - DISTANCIA_MAX
+  );
 }
 
 

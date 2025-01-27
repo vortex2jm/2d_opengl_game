@@ -301,10 +301,15 @@ double Player::get_cx()
   return Player::cx;
 }
 
+double Player::get_initial_cx()
+{
+  return Player::initial_cx;
+}
+
 //Setters
 void Player::set_arm_angle(double angle)
 {
-  Player::arms_angle += angle;
+  Player::arms_angle = ARM_ANGLE_BASE + angle;
 
   if(Player::arms_angle <= -135){
     Player::arms_angle = -135;
@@ -313,7 +318,6 @@ void Player::set_arm_angle(double angle)
 
   if(Player::arms_angle >= -45){
     Player::arms_angle = -45;
-    return;
   }
 }
 

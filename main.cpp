@@ -318,32 +318,25 @@ void mouseClick(int button, int state, int x, int y) {
 }
 
 //============================
-// TODO - adjust arms angle
 void mouseMotion(int x, int y)
 {
-  printf("Mouse Position: (%d, %d)\n", x, y);
-
   // Mapping mouse position into virtual world
   // Getting displacement proportion within window and
   // transposing this proportion to virtual world
-  double mapped_mouse_pos_y = (ring.get_height() * ((double)y/(double)Height)) + ring.get_y(); 
+  double mapped_mouse_pos_y = (-ring.get_height() * ((double)y/(double)Height)) - ring.get_y(); 
   double mapped_mouse_pos_x = (ring.get_height() * ((double)x/(double)Width)) + ring.get_x();
   
-  // double mapped_mouse_displacement_y = mapped_mouse_pos_y - (ring.get_y() + (ring.get_height()/2));
-  double mapped_mouse_displacement_y = mapped_mouse_pos_y - self.get_cy();
-  double mapped_mouse_displacement_x = mapped_mouse_pos_x - self.get_cx();
+  double mapped_mouse_displacement_y = mapped_mouse_pos_y - (-self.get_cy());
+  double mapped_mouse_displacement_x = 
+    mapped_mouse_pos_x - 
+    self.get_cx() + 
+    (self.get_cx() - self.get_initial_cx()); // offset because arena is too large
 
-  //debug
-  std::cout << mapped_mouse_displacement_y << std::endl;
-  std::cout<< mapped_mouse_displacement_x << std::endl;
-  
-  double angle_gain = 0.9;
+  // Calculating arms angle based on mouse angle with player                                                                          
+  double rad = atan2(mapped_mouse_displacement_y, abs(mapped_mouse_displacement_x)); // abs(x) for 1 and 4 quadrants
+  double deg = rad * 180.0/M_PI;
 
-  // double angle = atan(mapped_mouse_displacement_y/mapped_mouse_displacement_x);
-  // std::cout << angle << std::endl;
-  double angle =atan2(mapped_mouse_displacement_y, mapped_mouse_displacement_x);
-
-  self.set_arm_angle(angle * angle_gain);
+  self.set_arm_angle(-deg);
 }
 
 

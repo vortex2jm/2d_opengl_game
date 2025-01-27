@@ -13,6 +13,7 @@
 #define ARMS_PROP   0.30
 #define TRUNK_PROP  0.40
 #define LEGS_PROP   0.30
+#define ARM_ANGLE_BASE -90
 
 // Z-coord
 #define PLAYER_Z_INDEX 1.0
@@ -51,7 +52,7 @@ class Player {
   //arms===================
   double arms_width = 0;
   double arms_height = 0;
-  double arms_angle = -90;
+  double arms_angle = ARM_ANGLE_BASE;
 
   //trunk===============
   double trunk_width = 0;
@@ -102,6 +103,7 @@ class Player {
 
     double get_cy();
     double get_cx();
+    double get_initial_cx();
     void set_arm_angle(double angle);
     // external items
     Shot * shoot();

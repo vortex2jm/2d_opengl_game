@@ -279,14 +279,6 @@ void keyPress(unsigned char key, int x, int y){
 
 //=============
 void idle(void){
-  // Don't delete this part=================================
-  // static double previousTime = glutGet(GLUT_ELAPSED_TIME);
-  // double currentTime, timeDifference;
-  // currentTime = glutGet(GLUT_ELAPSED_TIME);
-  // timeDifference = currentTime - previousTime;
-  // previousTime = currentTime;
-  //========================================================
-
   // Setting time passed between iteration
   double timeDifference = get_time_diff();
 
@@ -295,7 +287,7 @@ void idle(void){
     // Checking arena limits
     if(is_player_into_arena_horizontally(self, ring, HorizontalMoveDirection::Left)) {
       // Checking collision against obstacles
-      if(!walking_collision(self, ring, enemies,HorizontalMoveDirection::Left, timeDifference)) {
+      if(!walking_collision(self, ring, enemies, HorizontalMoveDirection::Left, timeDifference)) {
         // Walking
         self.walk(timeDifference, HorizontalMoveDirection::Left);
         if(!(win or game_over)){
@@ -861,7 +853,14 @@ bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, d
     return false;
   }
 
-  //Down
+  //Down================================
+  
+  // low processing pcs correction
+  if(player.get_bottom_edge() >= (arena.get_y() + arena.get_height())){        
+    double new_cy = player.get_cy() - (player.get_bottom_edge() - (arena.get_y() + arena.get_height()));
+    player.set_cy(new_cy);
+  }
+
   for(const svg_tools::Rect& r: arena.get_obstacles()) {
     if(
       ((player.get_bottom_edge() >= (r.y)) && (player.get_bottom_edge() <= (r.y + r.height))) && 
@@ -905,6 +904,13 @@ bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, d
 bool falling_collision(Player &player, Arena arena, std::list<Player> enemies, double timeDiff)
 {
   double horizontal_offset = timeDiff * player.get_velocity() + 0.1;
+
+  // low processing pcs correction
+  if(player.get_bottom_edge() >= (arena.get_y() + arena.get_height())){        
+    double new_cy = player.get_cy() - (player.get_bottom_edge() - (arena.get_y() + arena.get_height()));
+    player.set_cy(new_cy);
+  }
+
 
   // obstacles collision
   for(const svg_tools::Rect& r: arena.get_obstacles()) {

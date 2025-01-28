@@ -14,7 +14,7 @@ void Player::setup(const svg_tools::Circ &circle)
 
   //legs========
   Player::legs_height = circle.r * 2 * LEGS_PROP;
-  Player::legs_width = legs_height * 0.1;
+  Player::legs_width = legs_height * 0.2;
   
   //trunk=======
   Player::trunk_height = circle.r * 2 * TRUNK_PROP;
@@ -26,6 +26,10 @@ void Player::setup(const svg_tools::Circ &circle)
 
   // head=======
   Player::head_diameter = circle.r * 2 * HEAD_PROP;
+
+  //============
+  Player::walk_direction = HorizontalMoveDirection::Right;
+  Player::last_walk_direction = HorizontalMoveDirection::Right;
 }
 
 

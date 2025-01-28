@@ -25,11 +25,12 @@
 
 
 // end game control
-static char game_over_message[1000] = "GAME OVER\n\0";
-static char win_message[1000] = "YOU WON\n\0";
+static char game_over_message[1000] = "GAME OVER\0";
+static char win_message[1000] = "YOU WON\0";
 bool game_over = false;
 bool win = false;
 char *svg;
+int camera_reset = 0;
 
 // Window dimensions
 const int Width = 500;
@@ -124,7 +125,8 @@ int main(int argc, char *argv[])
 //===========
 void setup(char * file){
   // Reading .svg and setting up ring==============
-  
+  camera_reset = 0;
+
   // Cleaning all data structures
   rectangles.clear();
   circles.clear();
@@ -169,7 +171,7 @@ void init(void)
     self.get_cx() + (ring.get_height()/2), //right edge
     limits["bottom"],   // bottom edge
     limits["top"],      // top edge
-    // -300, 300, -300, 300,
+    // -300, 300, 300, -300,
     -100,               // “near” plane
     100                 // “far” plane
   );               
@@ -180,6 +182,7 @@ void init(void)
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
+
 
 
 //=============================//
@@ -295,7 +298,9 @@ void idle(void){
       if(!walking_collision(self, ring, enemies,HorizontalMoveDirection::Left, timeDifference)) {
         // Walking
         self.walk(timeDifference, HorizontalMoveDirection::Left);
-        set_camera(timeDifference, self.get_velocity(), HorizontalMoveDirection::Left);
+        if(!(win or game_over)){
+          set_camera(timeDifference, self.get_velocity(), HorizontalMoveDirection::Left);
+        }
       }
     }
   }
@@ -308,7 +313,9 @@ void idle(void){
       if(!walking_collision(self, ring, enemies,HorizontalMoveDirection::Right, timeDifference)) {
         // Walking
         self.walk(timeDifference, HorizontalMoveDirection::Right);
-        set_camera(timeDifference, self.get_velocity(), HorizontalMoveDirection::Right);
+        if(!(win or game_over)){
+          set_camera(timeDifference, self.get_velocity(), HorizontalMoveDirection::Right);
+        }
       }
     }
   }
@@ -478,7 +485,12 @@ void idle(void){
   // game ends
   if(self.get_right_edge() >= (ring.get_x() + ring.get_width())){
     win = true;  
-    reset_camera((self.get_cx() - self.get_initial_cx()));
+
+    // Avoiding reset_camera repetition
+    if(!camera_reset){
+      reset_camera((self.get_cx() - self.get_initial_cx()));
+      camera_reset = 1;
+    }
   } 
 
   // Updating timer
@@ -641,7 +653,7 @@ void set_camera(double time, double velocity, HorizontalMoveDirection direction)
   glMatrixMode(GL_MODELVIEW);
 }
 
-//======================================
+//====================================
 void reset_camera(double displacement) {
   glMatrixMode(GL_PROJECTION);             
     glTranslated(displacement, 0, 0);
@@ -649,7 +661,7 @@ void reset_camera(double displacement) {
 }
 
 
-//===================
+//====================
 double get_time_diff()
 {
   static double previousTime = glutGet(GLUT_ELAPSED_TIME);
@@ -661,8 +673,7 @@ double get_time_diff()
 }
 
 
-//=============================================================================
-// TODO 
+//==================================================================================================
 bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMoveDirection direction)
 {
   if(direction == HorizontalMoveDirection::Left) {
@@ -673,9 +684,7 @@ bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMov
 }
 
 
-//=======================================================================================================
-// TODO - Create arena hitbox functions
-//=======================================
+//===============================================================================================================================
 bool walking_collision(Player &player, Arena arena, std::list<Player> enemies, HorizontalMoveDirection direction, double timeDiff) {
   
   double vertical_offset = timeDiff * player.get_velocity() + 0.1;
@@ -799,7 +808,7 @@ bool walking_collision(Player &player, Arena arena, std::list<Player> enemies, H
 }
 
 
-//=============================================================================
+//=============================================================================================
 bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, double timeDiff)
 { 
   // This factor avoid player halting horizontally against the obstacles when it's jumping.
@@ -892,7 +901,7 @@ bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, d
 }
 
 
-//=================================================================
+//============================================================================================
 bool falling_collision(Player &player, Arena arena, std::list<Player> enemies, double timeDiff)
 {
   double horizontal_offset = timeDiff * player.get_velocity() + 0.1;
@@ -937,6 +946,8 @@ bool falling_collision(Player &player, Arena arena, std::list<Player> enemies, d
   return false;
 }
 
+
+//===================================================
 void print_message(double x, double y, char * message)
 {
   void * font = GLUT_BITMAP_9_BY_15;
@@ -945,7 +956,7 @@ void print_message(double x, double y, char * message)
 
   char *tmpStr;
   tmpStr = message;
-  
+
   while( *tmpStr ){
     glutBitmapCharacter(font, *tmpStr);
     tmpStr++;

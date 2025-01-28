@@ -10,9 +10,9 @@ class Shot {
     double x_initial; 
     double y_initial; 
     // double gDirectionAng;
+    double radius = 1;
     double velocity = 0.1;
     double direction_vector[2];
-    double radius = 1;
 
 private:
     void draw_circle(double radius, double R, double G, double B);
@@ -22,6 +22,8 @@ public:
     void draw();
     void move(double timeDiff);
     bool is_valid();
+    
+    // getters
     void get_pos(double &x_out, double &y_out);
 };
 

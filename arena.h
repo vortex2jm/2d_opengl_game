@@ -29,14 +29,16 @@ class Arena {
 
   public:
     Arena(){}
-    void setup(const std::vector<svg_tools::Rect> &rectangles);
     void draw() const;
-    std::map<std::string, double> get_2dprojection_limits() const;
+    void setup(const std::vector<svg_tools::Rect> &rectangles);
+    
+    // getters
     double get_x();
     double get_y();
     double get_width();
     double get_height();
     std::vector<svg_tools::Rect> get_obstacles();
+    std::map<std::string, double> get_2dprojection_limits() const;
 };
 
 #endif

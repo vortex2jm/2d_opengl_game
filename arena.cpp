@@ -1,6 +1,7 @@
 #include "arena.h"
 #include <iostream>
 
+
 /// @brief Initialize arena attributes
 /// @param rectangles 
 void Arena::setup(const std::vector<svg_tools::Rect> &rectangles) {
@@ -56,8 +57,6 @@ void Arena::draw_rect(
 /// @brief Draws a fixed arena including obstacles
 void Arena::draw() const
 {
-  // std::array<double, 3> color = {};
-
   // Drawing arena
   Arena::draw_rect(Arena::x, Arena::y, Arena::width, Arena::height, 0.0, BLUE);
 
@@ -82,7 +81,8 @@ std::map<std::string, double> Arena::get_2dprojection_limits() const
   return limits;  // Returns by copy
 }
 
-// Getters
+
+// Getters===========
 double Arena::get_x()
 {
   return Arena::x;

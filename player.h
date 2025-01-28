@@ -53,8 +53,8 @@ class Player {
   //arms===================
   double arms_width = 0;
   double arms_height = 0;
-  double arms_angle_base = ARM_ANGLE_BASE_RIGHT;
   double arms_angle = ARM_ANGLE_BASE_RIGHT;
+  double arms_angle_base = ARM_ANGLE_BASE_RIGHT;
 
   //trunk===============
   double trunk_width = 0;
@@ -64,22 +64,22 @@ class Player {
   double head_diameter = 0;  
 
   //jump control===================
-  JumpPhase jump_phase = JumpPhase::Up;
-  double jump_button_last_state = 0;
-  double jump_time = 0.0;
   double fall_time = 0;
+  double jump_time = 0.0;
+  double jump_button_last_state = 0;
+  JumpPhase jump_phase = JumpPhase::Up;
 
   // walk control
   HorizontalMoveDirection walk_direction = HorizontalMoveDirection::Right;
   HorizontalMoveDirection last_walk_direction = HorizontalMoveDirection::Right;
 
   // Methods======
-  void draw_circle(double radius, double z_index, std::array<double, 3> color) const;
-  void draw_rect_by_center(double width, double height, double z_index, std::array<double, 3> color) const;
-  void draw_rect_by_base(double width, double height, double z_index, std::array<double, 3> color) const;
   void draw_trunk(double z_index, std::array<double, 3> color) const;
+  void draw_circle(double radius, double z_index, std::array<double, 3> color) const;
   void draw_head(double x, double y, double z_index, std::array<double, 3> color) const;
   void draw_arm(double x, double y, double theta, double z_index, std::array<double, 3> color) const;
+  void draw_rect_by_base(double width, double height, double z_index, std::array<double, 3> color) const;
+  void draw_rect_by_center(double width, double height, double z_index, std::array<double, 3> color) const;
   void draw_leg(double x, double y, double theta1, double theta2, double z_index, std::array<double, 3> color) const;
 
   //====
@@ -97,31 +97,29 @@ class Player {
     
     // jump control
     int jump(double time_diff, double acc, int button_state, bool collide);
-    JumpPhase get_jump_phase();
 
-    // Hitbox
+    // getters
+    double get_cx();
+    double get_cy();
+    double get_velocity();
+    double get_initial_cx();
+    JumpPhase get_jump_phase();
+    double get_top_edge() const;
     double get_left_edge() const;
     double get_right_edge() const;
-    double get_top_edge() const;
     double get_bottom_edge() const;
-    
-    double get_velocity();
-
-    double get_cy();
-    double get_cx();
-    double get_initial_cx();
     HorizontalMoveDirection get_walk_direction();
 
-    void set_arm_angle(double angle);
-    void set_arm_angle_base(double angle);
-    void set_cy(double cy);
+    // setters
     void set_cx(double cx);
+    void set_cy(double cy);
     void revert_walk_direction();
+    void set_arm_angle(double angle);
     void set_velocity(double velocity);
+    void set_arm_angle_base(double angle);
     
     // external items
     Shot * shoot();
-
 };
 
 #endif

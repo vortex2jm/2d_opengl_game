@@ -3,6 +3,8 @@
 #include <iostream>
 
 
+//==============================================
+// Player initialization
 void Player::setup(const svg_tools::Circ &circle)
 {
   Player::cx = circle.cx;
@@ -33,6 +35,8 @@ void Player::setup(const svg_tools::Circ &circle)
 }
 
 
+//=============================================================================================
+// Draw circle
 void Player::draw_circle(double radius, double z_index, const std::array<double, 3> color) const
 {
   glColor3d(color[0], color[1], color[2]);
@@ -47,6 +51,8 @@ void Player::draw_circle(double radius, double z_index, const std::array<double,
 }
 
 
+//===========================================================================================================
+// Draw rect
 void Player::draw_rect_by_center(double width, double height, double z_index, std::array<double, 3> color) const
 {
   glColor3d(color[0], color[1], color[2]);
@@ -60,6 +66,8 @@ void Player::draw_rect_by_center(double width, double height, double z_index, st
 }
 
 
+//===========================================================================================================
+// Draw rect
 void Player::draw_rect_by_base(double width, double height, double z_index, std::array<double, 3> color) const
 {
   glColor3d(color[0], color[1], color[2]);
@@ -73,6 +81,8 @@ void Player::draw_rect_by_base(double width, double height, double z_index, std:
 }
 
 
+//=======================================================================
+// Draw trunk
 void Player::draw_trunk(double z_index, std::array<double, 3> color) const
 { 
   // Redundancy (helps legibility)
@@ -82,6 +92,8 @@ void Player::draw_trunk(double z_index, std::array<double, 3> color) const
 }
 
 
+//===========================================================================================
+// Draw head
 void Player::draw_head(double x, double y, double z_index, std::array<double, 3> color) const
 {
   glPushMatrix();
@@ -91,6 +103,8 @@ void Player::draw_head(double x, double y, double z_index, std::array<double, 3>
 }
 
 
+//=======================================================================================================
+// Draw arms
 void Player::draw_arm(double x, double y, double theta, double z_index, std::array<double, 3> color) const
 {
   glPushMatrix();
@@ -101,6 +115,8 @@ void Player::draw_arm(double x, double y, double theta, double z_index, std::arr
 }
 
 
+//======================================================================================================================
+// Draw legs
 void Player::draw_leg(double x, double y, double theta1, double theta2, double z_index, std::array<double, 3> color) const
 {
   glPushMatrix();
@@ -114,6 +130,8 @@ void Player::draw_leg(double x, double y, double theta1, double theta2, double z
 }
 
 
+//======================
+// Draw whole body
 void Player::draw() const
 {
   glPushMatrix();
@@ -143,7 +161,8 @@ void Player::draw() const
 }
 
 
-//=================================
+//====================================================================
+// Horizontal motion
 void Player::walk(double time_diff, HorizontalMoveDirection direction) 
 {
   // Legs motion must be described by a periodic function
@@ -196,6 +215,7 @@ void Player::walk(double time_diff, HorizontalMoveDirection direction)
 
 
 //================================
+// Set leg angles to 0
 void Player::reset_legs_position()
 {
   Player::hip_joint_angle1 = 0;
@@ -204,7 +224,9 @@ void Player::reset_legs_position()
   Player::knee_joint_angle_2 =0;
 }
 
-//================================================================
+
+//===========================================================================
+// Jump motion
 int Player::jump(double time_diff, double acc ,int button_state, bool collide)
 {
   // Calculating rise and fall velocity
@@ -254,7 +276,8 @@ int Player::jump(double time_diff, double acc ,int button_state, bool collide)
 }
 
 
-//==============================================
+//=========================================================
+// Fall motion
 int Player::fall(double time_diff, double acc, bool collide)
 {
   // double acc = 9.8;
@@ -325,7 +348,8 @@ HorizontalMoveDirection Player::get_walk_direction()
     return Player::walk_direction;
 }
 
-//Setters
+
+//Setters===============================
 void Player::set_arm_angle(double angle)
 {
   // Right motion
@@ -357,7 +381,6 @@ void Player::set_arm_angle(double angle)
   return;
 }
 
-
 void Player::set_arm_angle_base(double angle)
 {
   Player::arms_angle_base = angle;
@@ -387,7 +410,9 @@ void Player::set_velocity(double velocity)
   Player::velocity = velocity;
 }
 
-//==================
+
+// External==================
+// Instantiate a new shot
 Shot *Player::shoot()
 {
   // Tip of the arm

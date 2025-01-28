@@ -4,6 +4,8 @@
 
 #define DISTANCIA_MAX 370
 
+//===================================================
+// Constructor
 Shot::Shot(double init_point[2], double direct_vec[2])
 {
   Shot::x_initial = init_point[0]; 
@@ -16,6 +18,8 @@ Shot::Shot(double init_point[2], double direct_vec[2])
 }
 
 
+//================================================================
+// Draw circle
 void Shot::draw_circle(double radius, double R, double G, double B)
 {
   glColor3f(R, G, B);
@@ -39,6 +43,8 @@ void Shot::draw()
 }
 
 
+//==============================
+// Shot motion
 void Shot::move(double timeDiff)
 {
   double aux_vec[2] = { 
@@ -62,6 +68,7 @@ bool Shot::is_valid()
 }
 
 
+//Getters====================
 void Shot::get_pos(double &x_out, double &y_out)
 {
   x_out = Shot::x;

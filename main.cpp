@@ -15,54 +15,54 @@
 #include "arena.h"
 #include "shot.h"
 
-#define MOUSE_LEFT 254
-#define MOUSE_RIGHT 255
-#define GRAVITY 28
-#define SHOT_INTERVAL 1000 // ms
-#define ENEMIES_VELOCITY 0.02
-#define PRINT_BASE_X -165
-#define PRINT_BASE_Y 145
+#define GRAVITY           28
+#define MOUSE_LEFT        254
+#define MOUSE_RIGHT       255
+#define PRINT_BASE_X      -165
+#define PRINT_BASE_Y      145
+#define SHOT_INTERVAL     1000 // ms
+#define ENEMIES_VELOCITY  0.02
 
 
-// end game control
+// End game control
 static char game_over_message[1000] = "GAME OVER\0";
 static char win_message[1000] = "YOU WON\0";
 bool game_over = false;
+int camera_reset = 0;
 bool win = false;
 char *svg;
-int camera_reset = 0;
 
 // Window dimensions
 const int Width = 500;
 const int Height = 500;
 
-// keyboard
+// Keyboard
 int key_status[256] = {0};
 
 // Jump controls
 JumpState jump_state = JumpState::NotJumping;
 FallState fall_state = FallState::NotFalling;
 
-// enemy controls
+// Enemy controls
 double shot_timer = 0.0;
 double enemy_change_walk_timer = 0.0;
 
 // Callback declarations
-void setup(char * file);
 void init(void);
 void idle(void);
 void resetKeyStatus();
 void renderScene(void);
+void mouseMotion(int x, int y);
 void keyUp(unsigned char key, int x, int y);
 void keyPress(unsigned char key, int x, int y);
 void mouseClick(int button, int state, int x, int y);
-void mouseMotion(int x, int y);
-void print_message(double x, double y, char * message);
 
 // utilities
-void set_camera(double time, double velocity, HorizontalMoveDirection direction);
-void reset_camera(double displacement);
 double get_time_diff();
+void setup(char * file);
+void reset_camera(double displacement);
+void print_message(double x, double y, char * message);
+void set_camera(double time, double velocity, HorizontalMoveDirection direction);
 
 // game_tools
 bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMoveDirection direction);
@@ -76,7 +76,7 @@ bool players_collision(Player p1, Player p2);
 std::vector<svg_tools::Rect> rectangles = {};
 std::vector<svg_tools::Circ> circles = {};
 
-// game components
+// Game components
 Arena ring;
 Player self;
 std::list<Shot*> shots;
@@ -94,6 +94,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
+  // Saving svg file globally
   svg = argv[1];
   setup(svg);
 
@@ -101,12 +102,12 @@ int main(int argc, char *argv[])
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 
-  // Creating the window.
+  // Creating the window
   glutInitWindowSize(Width, Height);
   glutInitWindowPosition(150,50);
   glutCreateWindow("2D Shot Game");
 
-  // Defining callbacks.
+  // Defining callbacks
   glutIdleFunc(idle);
   glutKeyboardUpFunc(keyUp);
   glutKeyboardFunc(keyPress);
@@ -114,17 +115,21 @@ int main(int argc, char *argv[])
   glutPassiveMotionFunc(mouseMotion);
   glutDisplayFunc(renderScene);
 
-  // Setup
+  // Initializing
   init();
-
   glutMainLoop();
   return 0;
 }
 
 
-//===========
+//=============================//
+// Implementations             //
+//=============================//
+
+//=======================
+// setup game's world
 void setup(char * file){
-  // Reading .svg and setting up ring==============
+  // Restarting flag
   camera_reset = 0;
 
   // Cleaning all data structures
@@ -133,7 +138,7 @@ void setup(char * file){
   enemies.clear();
   shots.clear();
 
-  // Start reading
+  // Reading .svg and setting up ring==============
   svg_tools::readSvg(file, rectangles, circles);  //vectors passed by referece   
   ring.setup(rectangles);
   
@@ -152,6 +157,7 @@ void setup(char * file){
 
 
 //=============
+// initialize window and projection
 void init(void)
 {
   // Erasing frames and keys
@@ -166,40 +172,32 @@ void init(void)
   // projection limits must to be proportional with the window aspect ratio
   glOrtho(
     self.get_cx() - (ring.get_height()/2), //left edge
-    // limits["left"],     // left edge
-    // limits["right"],    // right edge
     self.get_cx() + (ring.get_height()/2), //right edge
     limits["bottom"],   // bottom edge
     limits["top"],      // top edge
-    // -300, 300, 300, -300,
     -100,               // “near” plane
     100                 // “far” plane
   );               
-  
-  // Translates the world to left in front of camera (player movement)
-  // glTranslatef(-100, 0, 0);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
 
 
-
-//=============================//
-// Callbacks implementations   //
-//=============================//
+//=====================
+// callback
 void renderScene(void)
 {
   // Erasing buffer
   glClear(GL_COLOR_BUFFER_BIT);
 
-  if(game_over){
+  if(game_over){  // final message
     print_message(PRINT_BASE_X, PRINT_BASE_Y, game_over_message);
     glutSwapBuffers(); 
     return;
   }
 
-  if(win) {
+  if(win) {   // final message
     print_message(PRINT_BASE_X, PRINT_BASE_Y, win_message);
     glutSwapBuffers(); 
     return;
@@ -221,10 +219,11 @@ void renderScene(void)
 
 
 //========================================
+// callback
 void keyUp(unsigned char key, int x, int y){
   key_status[key] = 0;
   
-  // reseting legs to initial position
+  // reseting legs to initial position when player stops
   if(key == 'a' or key == 'd') {
     self.reset_legs_position();
   }
@@ -233,7 +232,8 @@ void keyUp(unsigned char key, int x, int y){
 }
 
 
-//==================
+//===================
+// Reset keyboard
 void resetKeyStatus(){
   for(int x=0; x<256; x++){
     key_status[x] = 0;
@@ -243,6 +243,7 @@ void resetKeyStatus(){
 
 
 //============================================
+// callback
 void keyPress(unsigned char key, int x, int y){
   switch (key)
   {
@@ -278,8 +279,9 @@ void keyPress(unsigned char key, int x, int y){
 
 
 //=============
+// callback
 void idle(void){
-  // Setting time passed between iteration
+  // Setting time between iter
   double timeDifference = get_time_diff();
 
   // Horizontal left motion===========
@@ -377,7 +379,6 @@ void idle(void){
     // Prevent seg fault
     if(is_shot_deleted) continue;
     
-
     // Collision against self player
     if(
       shot_x > self.get_left_edge() && 
@@ -395,8 +396,6 @@ void idle(void){
 
     // Prevent seg fault
     if(is_shot_deleted) continue;
-
-
 
     // Checking collision against obstacles
     for(const svg_tools::Rect& r: ring.get_obstacles()){
@@ -416,7 +415,6 @@ void idle(void){
     // Prevent seg fault
     if(is_shot_deleted) continue;
 
-
     // Shot lifecycle
     if (not (*shot)->is_valid()) {
         delete (*shot);
@@ -428,7 +426,7 @@ void idle(void){
   }
 
 
-  // Enemies motion=====
+  // Enemies motion==========
   for(Player &enemy: enemies){
 
     // enemies  always aim to self player
@@ -474,7 +472,7 @@ void idle(void){
     shot_timer = 0.0;
   }
 
-  // game ends
+  // game ends if player reaches the end of the arena
   if(self.get_right_edge() >= (ring.get_x() + ring.get_width())){
     win = true;  
 
@@ -492,6 +490,7 @@ void idle(void){
 
 
 //============================================
+// Checks collision against 2 players
 bool players_collision(Player p1, Player p2) {
   if(
     ((p1.get_right_edge() >= p2.get_left_edge() && p1.get_left_edge() <= p2.get_left_edge()) ||
@@ -507,12 +506,14 @@ bool players_collision(Player p1, Player p2) {
 
 
 //=====================================================
+// Detect platform limit under the player
 bool platform_end_detected(Player player, Arena arena){
 
   double floor_offset = 1;
 
   for(const svg_tools::Rect& r: arena.get_obstacles()) {
     
+    // Check if player is over an obstacle
     if(abs(player.get_bottom_edge() - r.y) <= floor_offset){
       if(
         (player.get_left_edge() <= r.x && player.get_right_edge() >= r.x) ||
@@ -524,12 +525,11 @@ bool platform_end_detected(Player player, Arena arena){
       }
     }
 
+    // Treats players not over obstacles==========
     else if(player.get_walk_direction() == HorizontalMoveDirection::Left) {
-
-      //arena
+      //arena collision
       if(player.get_left_edge() <= arena.get_x()) return true;
-
-      // obstacles
+      // obstacles collision
       if( 
       (player.get_left_edge() <= (r.x + r.width)) &&  
       (player.get_left_edge() >= (r.x)) &&
@@ -550,12 +550,12 @@ bool platform_end_detected(Player player, Arena arena){
       }
     }
 
+    // Rightward motion====
     else {
-  
-      //arena
+      //arena collision
       if(player.get_right_edge() >= (arena.get_x() + arena.get_width())) return true;
 
-      // obstacles
+      // obstacles collision
       if(
         // by width 
         (player.get_right_edge() >= (r.x)) &&  
@@ -584,6 +584,7 @@ bool platform_end_detected(Player player, Arena arena){
 
 
 //===================================================
+// callback
 void mouseClick(int button, int state, int x, int y) {
   if(button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
 
@@ -606,7 +607,9 @@ void mouseClick(int button, int state, int x, int y) {
   }
 }
 
+
 //============================
+// callback
 void mouseMotion(int x, int y)
 {
   // Mapping mouse position into virtual world
@@ -632,6 +635,7 @@ void mouseMotion(int x, int y)
 
 
 //===============================================================================
+// set camera position based on displacement and direction
 void set_camera(double time, double velocity, HorizontalMoveDirection direction)
 {
   double displacement = time * velocity; 
@@ -645,7 +649,9 @@ void set_camera(double time, double velocity, HorizontalMoveDirection direction)
   glMatrixMode(GL_MODELVIEW);
 }
 
+
 //====================================
+// set camera position absolutely
 void reset_camera(double displacement) {
   glMatrixMode(GL_PROJECTION);             
     glTranslated(displacement, 0, 0);
@@ -654,6 +660,7 @@ void reset_camera(double displacement) {
 
 
 //====================
+// gets time diff between iter.
 double get_time_diff()
 {
   static double previousTime = glutGet(GLUT_ELAPSED_TIME);
@@ -666,6 +673,7 @@ double get_time_diff()
 
 
 //==================================================================================================
+// Checks if player is into arena
 bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMoveDirection direction)
 {
   if(direction == HorizontalMoveDirection::Left) {
@@ -677,13 +685,13 @@ bool is_player_into_arena_horizontally(Player player, Arena arena, HorizontalMov
 
 
 //===============================================================================================================================
+// Checks horizontal collision
 bool walking_collision(Player &player, Arena arena, std::list<Player> enemies, HorizontalMoveDirection direction, double timeDiff) {
   
   double vertical_offset = timeDiff * player.get_velocity() + 0.1;
   
-  // Right motion
+  // Right motion==================================
   if(direction == HorizontalMoveDirection::Right) {
-
     // Obstacles collision================================
     for(const svg_tools::Rect& r: arena.get_obstacles()) {
       if(
@@ -705,10 +713,9 @@ bool walking_collision(Player &player, Arena arena, std::list<Player> enemies, H
           )
         )
       ){
-
+        // Not necessary
         // double new_cx = player.get_cx() - (player.get_right_edge() - r.x);
         // player.set_cx(new_cx);
-
         return true;
       }
     }
@@ -745,8 +752,9 @@ bool walking_collision(Player &player, Arena arena, std::list<Player> enemies, H
     return false;
   }
 
-  // Left
+  // Left motion=========================================
   for(const svg_tools::Rect& r: arena.get_obstacles()) {
+    // obstacles collision
     if( 
       (player.get_left_edge() <= (r.x + r.width)) &&  
       (player.get_left_edge() >= (r.x)) &&
@@ -763,14 +771,13 @@ bool walking_collision(Player &player, Arena arena, std::list<Player> enemies, H
         )
       )
     ){
-
+      // Not necessary
       // double new_cx = player.get_cx() + ((r.x + r.width) - player.get_left_edge());
       // player.set_cx(new_cx);
-      
       return true;
     }
   }
-
+  // enemies collision
   for(const Player &enemy: enemies) {
     if( 
       (player.get_left_edge() <= enemy.get_right_edge()) &&  
@@ -789,6 +796,7 @@ bool walking_collision(Player &player, Arena arena, std::list<Player> enemies, H
       )
     ){
 
+      // correction for low processing pcs
       double new_cx = player.get_cx() + (enemy.get_right_edge() - player.get_left_edge());
       player.set_cx(new_cx);
 
@@ -801,6 +809,7 @@ bool walking_collision(Player &player, Arena arena, std::list<Player> enemies, H
 
 
 //=============================================================================================
+// Checks collision when player is jumping
 bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, double timeDiff)
 { 
   // This factor avoid player halting horizontally against the obstacles when it's jumping.
@@ -808,19 +817,16 @@ bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, d
   // This is a hitbox adjustment.
   //
   // The horizontal motion is controlled by another function and the player stops when
-  // it's against the obstacle limit. This factor does a little adjustment in this limit 
+  // it's against the obstacle limit. The "horizontal_offset" does a little adjustment in this limit 
   // for the vertical motion function, once the vertical motion function also leads
   // with horizontal limits and stops the jump based on horizontal limits too.
   //
   // Without this adjustment, the player stucks in the wall when it's jumping
 
-
   // TODO - this offset is not working because the displacement grows with time
   double horizontal_offset = timeDiff * player.get_velocity() + 0.1;
 
-
   if(player.get_jump_phase() == JumpPhase::Up) {
-    
     // Obstacles collision==============================
     for(const svg_tools::Rect& r: arena.get_obstacles()) {
       if(
@@ -835,7 +841,6 @@ bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, d
         return true;
       } 
     }
-
     // Enemy coliision===============
     for(const Player &enemy: enemies) {
       if(
@@ -849,12 +854,10 @@ bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, d
         return true;
       } 
     }
-
     return false;
   }
 
   //Down================================
-  
   // low processing pcs correction
   if(player.get_bottom_edge() >= (arena.get_y() + arena.get_height())){        
     double new_cy = player.get_cy() - (player.get_bottom_edge() - (arena.get_y() + arena.get_height()));
@@ -869,8 +872,7 @@ bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, d
         ((player.get_left_edge() <= (r.x + r.width - horizontal_offset)) && (player.get_right_edge() >= (r.x + r.width))) ||
         ((player.get_left_edge() >= r.x) && (player.get_right_edge() <= (r.x + r.width)))
       )
-    ){
-      
+    ){      
       // Respecting hitboxes
       double new_cy = player.get_cy() - (player.get_bottom_edge() - r.y);
       player.set_cy(new_cy);
@@ -888,19 +890,20 @@ bool jumping_collision(Player &player, Arena arena, std::list<Player> enemies, d
         ((player.get_left_edge() >= enemy.get_left_edge()) && (player.get_right_edge() <= enemy.get_right_edge()))
       )
     ){
-
+      
+      // correction for low processing pcs
       double new_cy = player.get_cy() - (player.get_bottom_edge() - enemy.get_top_edge());
       player.set_cy(new_cy);
 
       return true;
     } 
    }
-
   return false;
 }
 
 
 //============================================================================================
+// Checks collision when player is falling
 bool falling_collision(Player &player, Arena arena, std::list<Player> enemies, double timeDiff)
 {
   double horizontal_offset = timeDiff * player.get_velocity() + 0.1;
@@ -910,7 +913,6 @@ bool falling_collision(Player &player, Arena arena, std::list<Player> enemies, d
     double new_cy = player.get_cy() - (player.get_bottom_edge() - (arena.get_y() + arena.get_height()));
     player.set_cy(new_cy);
   }
-
 
   // obstacles collision
   for(const svg_tools::Rect& r: arena.get_obstacles()) {
@@ -922,7 +924,6 @@ bool falling_collision(Player &player, Arena arena, std::list<Player> enemies, d
         ((player.get_left_edge() >= r.x) && (player.get_right_edge() <= (r.x + r.width)))
       )
     ){
-
       // Respecting hitboxes
       double new_cy = player.get_cy() - (player.get_bottom_edge() - r.y);
       player.set_cy(new_cy);
@@ -930,7 +931,6 @@ bool falling_collision(Player &player, Arena arena, std::list<Player> enemies, d
       return true;
     } 
   }
-
   // Enemy collision
   for(const Player &enemy: enemies) {
     if(
@@ -941,19 +941,19 @@ bool falling_collision(Player &player, Arena arena, std::list<Player> enemies, d
       ((player.get_left_edge() >= enemy.get_left_edge()) && (player.get_right_edge() <= enemy.get_right_edge()))
     )
     ){
-
+      // correction for low processing pcs
       double new_cy = player.get_cy() - (player.get_bottom_edge() - enemy.get_top_edge());
       player.set_cy(new_cy);
       
       return true;
     } 
   }  
-
   return false;
 }
 
 
 //===================================================
+// Prints messages in the screen
 void print_message(double x, double y, char * message)
 {
   void * font = GLUT_BITMAP_9_BY_15;

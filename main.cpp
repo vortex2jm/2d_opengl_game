@@ -258,7 +258,7 @@ void keyPress(unsigned char key, int x, int y){
 
   case 'r':
   case 'R':
-    if(game_over){
+    if(game_over or win){
       setup(svg);
       game_over = false;
       win = false;
